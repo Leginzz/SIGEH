@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Room } from '../types';
 import RoomCard from './RoomCard';
@@ -18,11 +17,11 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, onSelectRoom, onAddRoom }) =
       ))}
       <div
         onClick={onAddRoom}
-        className="relative p-4 rounded-lg border-2 border-dashed border-slate-600 cursor-pointer transition-all duration-300 ease-in-out transform hover:scale-105 hover:bg-slate-800 hover:border-indigo-500 flex flex-col items-center justify-center aspect-square"
+        className="relative p-4 rounded-lg border-2 border-dashed border-gray-300 cursor-pointer transition-all duration-300 hover:border-indigo-400 bg-white/50 hover:bg-white flex flex-col items-center justify-center aspect-square shadow-sm hover:shadow-md"
         title="Agregar nueva habitación"
       >
-        <PlusIcon className="w-10 h-10 text-slate-500 group-hover:text-indigo-400 transition-colors" />
-        <span className="mt-2 text-sm font-semibold text-slate-500 group-hover:text-indigo-400 transition-colors">Añadir</span>
+        <PlusIcon className="w-10 h-10 text-gray-400" />
+        <span className="mt-2 text-sm font-semibold text-gray-400">Añadir</span>
       </div>
     </div>
   );

@@ -9,31 +9,31 @@ interface KpiCardProps {
   trend?: { value: string; positive: boolean };
 }
 
-const colorMap: Record<string, { bg: string; text: string; border: string }> = {
-  blue: { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30' },
-  green: { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30' },
-  red: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' },
-  yellow: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/30' },
-  purple: { bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30' },
-  cyan: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30' },
-  orange: { bg: 'bg-orange-500/20', text: 'text-orange-400', border: 'border-orange-500/30' },
+const colorMap: Record<string, { bg: string; text: string }> = {
+  blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
+  green: { bg: 'bg-green-100', text: 'text-green-600' },
+  red: { bg: 'bg-red-100', text: 'text-red-600' },
+  yellow: { bg: 'bg-yellow-100', text: 'text-yellow-600' },
+  purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
+  cyan: { bg: 'bg-cyan-100', text: 'text-cyan-600' },
+  orange: { bg: 'bg-orange-100', text: 'text-orange-600' },
 };
 
 const KpiCard: React.FC<KpiCardProps> = ({ title, value, subtitle, icon, color, trend }) => {
   const c = colorMap[color];
   return (
-    <div className={`bg-slate-800/50 border ${c.border} rounded-xl p-4 flex flex-col justify-between min-h-[120px]`}>
+    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]">
       <div className="flex items-start justify-between">
-        <p className="text-slate-400 text-xs font-medium uppercase tracking-wider">{title}</p>
+        <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">{title}</p>
         <div className={`${c.bg} p-2 rounded-lg`}>
           <div className={`w-5 h-5 ${c.text}`}>{icon}</div>
         </div>
       </div>
       <div className="mt-2">
-        <p className="text-2xl font-bold text-white">{value}</p>
-        {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+        <p className="text-2xl font-bold text-gray-900">{value}</p>
+        {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
         {trend && (
-          <p className={`text-xs font-semibold mt-1 ${trend.positive ? 'text-green-400' : 'text-red-400'}`}>
+          <p className={`text-xs font-semibold mt-1 ${trend.positive ? 'text-green-600' : 'text-red-600'}`}>
             {trend.positive ? '↑' : '↓'} {trend.value}
           </p>
         )}

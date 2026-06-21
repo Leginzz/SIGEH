@@ -11,89 +11,90 @@ import { BedIcon, ChartBarIcon, BookmarkSquareIcon, ArchiveBoxIcon, Presentation
 
 type View = 'rooms' | 'dashboard' | 'reservations' | 'reports' | 'executive';
 
+const navItems: { view: View; label: string; icon: React.ReactNode }[] = [
+  { view: 'executive', label: 'Dashboard', icon: <PresentationChartIcon className="w-5 h-5" /> },
+  { view: 'rooms', label: 'Habitaciones', icon: <BedIcon className="w-5 h-5" /> },
+  { view: 'dashboard', label: 'Caja', icon: <ChartBarIcon className="w-5 h-5" /> },
+  { view: 'reservations', label: 'Reservas', icon: <BookmarkSquareIcon className="w-5 h-5" /> },
+  { view: 'reports', label: 'Informes', icon: <ArchiveBoxIcon className="w-5 h-5" /> },
+];
+
+const descriptions: Record<View, string> = {
+  executive: 'Métricas clave, gráficas y rendimiento del hotel en tiempo real.',
+  rooms: 'Gestión de habitaciones en tiempo real.',
+  dashboard: 'Control de caja y análisis de ingresos del período actual.',
+  reservations: 'Vista y gestión de futuras reservas.',
+  reports: 'Historial de cortes de caja e informes financieros.',
+};
+
 function App() {
-  const { 
-    rooms, 
-    bookingHistory,
-    dailyReports,
-    cashTransactions,
-    updateRoom, 
-    checkOutAndRecordBooking, 
-    addRoom, 
-    deleteRoom, 
-    addReservation,
-    cancelReservation,
-    checkIn, 
-    checkInFromReservation,
-    generateDailyReport,
-    addCashTransaction,
+  const {
+    rooms, bookingHistory, dailyReports, cashTransactions,
+    updateRoom, checkOutAndRecordBooking, addRoom, deleteRoom,
+    addReservation, cancelReservation, checkIn, checkInFromReservation,
+    generateDailyReport, addCashTransaction,
   } = useHotelData();
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [activeView, setActiveView] = useState<View>('rooms');
+  const [activeView, setActiveView] = useState<View>('executive');
 
   useEffect(() => {
-    // Keep selectedRoom in sync with the main rooms list
-    // This fixes UI not updating after deleting a room or cancelling a reservation
     if (selectedRoom) {
       const freshRoomData = rooms.find(r => r.id === selectedRoom.id);
       setSelectedRoom(freshRoomData || null);
     }
   }, [rooms]);
 
-  const handleSelectRoom = (room: Room) => {
-    setSelectedRoom(room);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedRoom(null);
-  };
-
-  const NavButton: React.FC<{view: View, label: string, icon: React.ReactNode}> = ({ view, label, icon }) => (
-    <button
-      onClick={() => setActiveView(view)}
-      className={`flex items-center space-x-2 px-3 py-2 text-sm sm:px-4 sm:py-2 rounded-lg transition-all duration-300 ${
-        activeView === view
-          ? 'bg-indigo-600 text-white shadow-lg'
-          : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/80 hover:text-white'
-      }`}
-    >
-      {icon}
-      <span className="font-semibold hidden sm:inline">{label}</span>
-    </button>
-  );
+  const handleSelectRoom = (room: Room) => setSelectedRoom(room);
+  const handleCloseModal = () => setSelectedRoom(null);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-4 sm:p-6 lg:p-8">
-      <header className="text-center mb-8">
-        <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
-          SIGEH - Sistema de Gestión Hotelera
-        </h1>
-        <p className="text-slate-400 mt-2 max-w-2xl mx-auto">
-          {
-            {
-              rooms: `Gestionando ${rooms.length} habitaciones en tiempo real.`,
-              dashboard: 'Control de caja y análisis de ingresos del período actual.',
-              reservations: 'Vista y gestión de futuras reservas.',
-              reports: 'Historial de cortes de caja e informes financieros.',
-              executive: 'Métricas clave, gráficas y rendimiento del hotel en tiempo real.'
-            }[activeView]
-          }
-        </p>
-      </header>
-
-      <nav className="flex justify-center items-center mb-8 bg-slate-800/30 backdrop-blur-sm p-2 rounded-xl max-w-md sm:max-w-lg mx-auto">
-        <div className="flex space-x-2">
-            <NavButton view="rooms" label="Habitaciones" icon={<BedIcon className="w-5 h-5"/>} />
-            <NavButton view="dashboard" label="Caja" icon={<ChartBarIcon className="w-5 h-5" />} />
-            <NavButton view="reservations" label="Reservas" icon={<BookmarkSquareIcon className="w-5 h-5" />} />
-            <NavButton view="reports" label="Informes" icon={<ArchiveBoxIcon className="w-5 h-5" />} />
-            <NavButton view="executive" label="Ejecutivo" icon={<PresentationChartIcon className="w-5 h-5" />} />
+    <div className="flex min-h-screen bg-gray-100">
+      <aside className="w-64 bg-slate-900 text-white flex-shrink-0 min-h-screen flex flex-col">
+        <div className="p-5 border-b border-slate-700">
+          <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
+            SIGEH
+          </h1>
+          <p className="text-xs text-slate-400 mt-0.5">Sistema de Gestión Hotelera</p>
         </div>
-      </nav>
-      
-      <main>
-        {activeView === 'rooms' && <RoomGrid rooms={rooms} onSelectRoom={handleSelectRoom} onAddRoom={addRoom} />}
-        {activeView === 'dashboard' && <Dashboard cashTransactions={cashTransactions} onGenerateReport={generateDailyReport} onAddCashTransaction={addCashTransaction} />}
+        <nav className="flex-1 p-3 space-y-1">
+          {navItems.map(item => (
+            <button
+              key={item.view}
+              onClick={() => setActiveView(item.view)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeView === item.view
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="p-4 text-xs text-slate-600 border-t border-slate-800">
+          v0.1.0
+        </div>
+      </aside>
+
+      <main className="flex-1 p-6 lg:p-8">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {navItems.find(n => n.view === activeView)?.label}
+          </h2>
+          <p className="text-gray-500 mt-1">{descriptions[activeView]}</p>
+        </div>
+
+        {activeView === 'rooms' && (
+          <RoomGrid rooms={rooms} onSelectRoom={handleSelectRoom} onAddRoom={addRoom} />
+        )}
+        {activeView === 'dashboard' && (
+          <Dashboard
+            cashTransactions={cashTransactions}
+            onGenerateReport={generateDailyReport}
+            onAddCashTransaction={addCashTransaction}
+          />
+        )}
         {activeView === 'reservations' && <ReservationsView rooms={rooms} />}
         {activeView === 'reports' && <ReportsView reports={dailyReports} />}
         {activeView === 'executive' && (
@@ -119,10 +120,6 @@ function App() {
           onCheckInFromReservation={checkInFromReservation}
         />
       )}
-
-      <footer className="text-center mt-12 text-slate-500 text-sm">
-        <p>Desarrollado con tecnología de vanguardia para una gestión hotelera superior — SIGEH</p>
-      </footer>
     </div>
   );
 }

@@ -23,8 +23,8 @@ const DonutChart: React.FC<DonutChartProps> = ({ data, size = 200, innerRadius =
     return (
       <div className="flex flex-col items-center">
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#334155" strokeWidth={r - innerRadius} />
-          <text x={cx} y={cy - 4} textAnchor="middle" fill="#94a3b8" fontSize="14">Sin datos</text>
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e5e7eb" strokeWidth={r - innerRadius} />
+          <text x={cx} y={cy - 4} textAnchor="middle" fill="#9ca3af" fontSize="14">Sin datos</text>
         </svg>
       </div>
     );
@@ -59,14 +59,14 @@ const DonutChart: React.FC<DonutChartProps> = ({ data, size = 200, innerRadius =
     <div className="flex flex-col items-center">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         {segments}
-        <text x={cx} y={cy - 4} textAnchor="middle" fill="#e2e8f0" fontSize="18" fontWeight="bold">
+        <text x={cx} y={cy - 4} textAnchor="middle" fill="#1f2937" fontSize="18" fontWeight="bold">
           ${total}
         </text>
-        <text x={cx} y={cy + 14} textAnchor="middle" fill="#94a3b8" fontSize="11">Total</text>
+        <text x={cx} y={cy + 14} textAnchor="middle" fill="#6b7280" fontSize="11">Total</text>
       </svg>
       <div className="flex flex-wrap justify-center gap-3 mt-3">
         {data.filter(d => d.value > 0).map((d, i) => (
-          <div key={i} className="flex items-center gap-1.5 text-xs text-slate-300">
+          <div key={i} className="flex items-center gap-1.5 text-xs text-gray-600">
             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
             {d.label}: ${d.value}
           </div>

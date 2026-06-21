@@ -15,10 +15,6 @@ interface ExecutiveDashboardProps {
   dailyReports: DailyReport[];
 }
 
-const IconWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <>{children}</>
-);
-
 const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = (props) => {
   const { kpis, revenueDays, paymentMethods, statusCounts, recentActivity } = useDashboardStats(
     props.rooms,
@@ -27,12 +23,8 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = (props) => {
     props.dailyReports
   );
 
-  const totalStatus = statusCounts.reduce((s, c) => s + c.count, 0);
-
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-white">Dashboard Ejecutivo</h2>
-
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         <KpiCard
           title="Ocupación"
@@ -82,33 +74,33 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = (props) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
-          <h3 className="text-lg font-bold text-white mb-4">Ingresos Últimos 7 Días</h3>
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Ingresos Últimos 7 Días</h3>
           {revenueDays.some(d => d.value > 0) ? (
             <BarChart data={revenueDays.map(d => ({ ...d }))} barColor="#6366f1" />
           ) : (
-            <p className="text-center text-slate-400 py-8">No hay ingresos registrados en los últimos 7 días.</p>
+            <p className="text-center text-gray-400 py-8">No hay ingresos registrados en los últimos 7 días.</p>
           )}
         </div>
 
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
-          <h3 className="text-lg font-bold text-white mb-4">Método de Pago (Mes)</h3>
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Método de Pago (Mes)</h3>
           {paymentMethods.some(p => p.value > 0) ? (
             <DonutChart data={paymentMethods} />
           ) : (
-            <p className="text-center text-slate-400 py-8">No hay pagos registrados este mes.</p>
+            <p className="text-center text-gray-400 py-8">No hay pagos registrados este mes.</p>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
-          <h3 className="text-lg font-bold text-white mb-4">Estado de Habitaciones</h3>
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Estado de Habitaciones</h3>
           <OccupancyBars rooms={props.rooms} />
         </div>
 
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
-          <h3 className="text-lg font-bold text-white mb-4">Actividad Reciente</h3>
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Actividad Reciente</h3>
           <RecentActivity activities={recentActivity} />
         </div>
       </div>

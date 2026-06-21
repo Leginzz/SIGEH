@@ -41,7 +41,7 @@ const BarChart: React.FC<BarChartProps> = ({ data, height = 200, maxValue, barCo
                 {d.label}
               </text>
               {d.value > 0 && (
-                <text x={x + barWidth / 2} y={y - 6} textAnchor="middle" fill="#e2e8f0" fontSize="10" fontWeight="bold">
+                <text x={x + barWidth / 2} y={y - 6} textAnchor="middle" fill="#475569" fontSize="10" fontWeight="bold">
                   ${d.value}
                 </text>
               )}
