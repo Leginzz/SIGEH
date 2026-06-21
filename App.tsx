@@ -6,17 +6,19 @@ import ReservationsView from './components/ReservationsView';
 import ReportsView from './components/ReportsView';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
 import CashRegisterView from './components/CashRegisterView';
+import CashManagementView from './components/CashManagementView';
 import { useHotelData } from './hooks/useHotelData';
 import type { Room } from './types';
-import { BedIcon, ChartBarIcon, BookmarkSquareIcon, ArchiveBoxIcon, PresentationChartIcon, LockClosedIcon } from './components/icons/Icons';
+import { BedIcon, ChartBarIcon, BookmarkSquareIcon, ArchiveBoxIcon, PresentationChartIcon, LockClosedIcon, CurrencyDollarIcon } from './components/icons/Icons';
 
-type View = 'rooms' | 'dashboard' | 'reservations' | 'reports' | 'executive' | 'cashregister';
+type View = 'rooms' | 'dashboard' | 'reservations' | 'reports' | 'executive' | 'cashregister' | 'cash';
 
 const navItems: { view: View; label: string; icon: React.ReactNode }[] = [
   { view: 'executive', label: 'Dashboard', icon: <PresentationChartIcon className="w-5 h-5" /> },
   { view: 'rooms', label: 'Habitaciones', icon: <BedIcon className="w-5 h-5" /> },
+  { view: 'cash', label: 'Caja', icon: <CurrencyDollarIcon className="w-5 h-5" /> },
   { view: 'cashregister', label: 'Corte de Caja', icon: <LockClosedIcon className="w-5 h-5" /> },
-  { view: 'dashboard', label: 'Caja', icon: <ChartBarIcon className="w-5 h-5" /> },
+  { view: 'dashboard', label: 'Caja Manual', icon: <ChartBarIcon className="w-5 h-5" /> },
   { view: 'reservations', label: 'Reservas', icon: <BookmarkSquareIcon className="w-5 h-5" /> },
   { view: 'reports', label: 'Informes', icon: <ArchiveBoxIcon className="w-5 h-5" /> },
 ];
@@ -24,6 +26,7 @@ const navItems: { view: View; label: string; icon: React.ReactNode }[] = [
 const descriptions: Record<View, string> = {
   executive: 'Métricas clave, gráficas y rendimiento del hotel en tiempo real.',
   rooms: 'Gestión de habitaciones en tiempo real.',
+  cash: 'Centro financiero del hotel. Ingresos, egresos y trazabilidad completa.',
   dashboard: 'Control de caja y análisis de ingresos del período actual.',
   cashregister: 'Apertura, movimientos, arqueo y cierre de caja.',
   reservations: 'Vista y gestión de futuras reservas.',
@@ -107,6 +110,15 @@ function App() {
             onOpenRegister={openRegister}
             onAddCashMovement={addCashMovement}
             onCloseRegister={closeRegisterWithArqueo}
+          />
+        )}
+        {activeView === 'cash' && (
+          <CashManagementView
+            rooms={rooms}
+            bookingHistory={bookingHistory}
+            cashTransactions={cashTransactions}
+            dailyReports={dailyReports}
+            cashRegister={cashRegister}
           />
         )}
         {activeView === 'executive' && (

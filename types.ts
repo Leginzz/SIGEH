@@ -35,6 +35,7 @@ export interface Guest {
   totalAgreedPrice: number;
   paymentMethod: PaymentMethod;
   invoiceRequested: boolean;
+  depositAmount?: number;
 }
 
 export interface Room {
@@ -58,13 +59,21 @@ export interface BookingRecord {
   reportId?: string; // To link to a daily report
 }
 
+export type CashTransactionOrigin = 'reservation' | 'checkin' | 'checkout' | 'sale' | 'adjustment' | 'withdrawal' | 'expense' | 'manual';
+
 export interface CashTransaction {
     id: string;
     type: 'income' | 'expense' | 'initial';
     amount: number;
     description: string;
     date: string;
+    time?: string;
     reportId?: string;
+    origin?: CashTransactionOrigin;
+    roomId?: number;
+    guestName?: string;
+    reservationId?: string;
+    paymentMethod?: PaymentMethod;
 }
 
 export interface DailyReport {
