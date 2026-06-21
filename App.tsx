@@ -5,15 +5,17 @@ import Dashboard from './components/Dashboard';
 import ReservationsView from './components/ReservationsView';
 import ReportsView from './components/ReportsView';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
+import CashRegisterView from './components/CashRegisterView';
 import { useHotelData } from './hooks/useHotelData';
 import type { Room } from './types';
-import { BedIcon, ChartBarIcon, BookmarkSquareIcon, ArchiveBoxIcon, PresentationChartIcon } from './components/icons/Icons';
+import { BedIcon, ChartBarIcon, BookmarkSquareIcon, ArchiveBoxIcon, PresentationChartIcon, LockClosedIcon } from './components/icons/Icons';
 
-type View = 'rooms' | 'dashboard' | 'reservations' | 'reports' | 'executive';
+type View = 'rooms' | 'dashboard' | 'reservations' | 'reports' | 'executive' | 'cashregister';
 
 const navItems: { view: View; label: string; icon: React.ReactNode }[] = [
   { view: 'executive', label: 'Dashboard', icon: <PresentationChartIcon className="w-5 h-5" /> },
   { view: 'rooms', label: 'Habitaciones', icon: <BedIcon className="w-5 h-5" /> },
+  { view: 'cashregister', label: 'Corte de Caja', icon: <LockClosedIcon className="w-5 h-5" /> },
   { view: 'dashboard', label: 'Caja', icon: <ChartBarIcon className="w-5 h-5" /> },
   { view: 'reservations', label: 'Reservas', icon: <BookmarkSquareIcon className="w-5 h-5" /> },
   { view: 'reports', label: 'Informes', icon: <ArchiveBoxIcon className="w-5 h-5" /> },
@@ -23,16 +25,18 @@ const descriptions: Record<View, string> = {
   executive: 'Métricas clave, gráficas y rendimiento del hotel en tiempo real.',
   rooms: 'Gestión de habitaciones en tiempo real.',
   dashboard: 'Control de caja y análisis de ingresos del período actual.',
+  cashregister: 'Apertura, movimientos, arqueo y cierre de caja.',
   reservations: 'Vista y gestión de futuras reservas.',
   reports: 'Historial de cortes de caja e informes financieros.',
 };
 
 function App() {
   const {
-    rooms, bookingHistory, dailyReports, cashTransactions,
+    rooms, bookingHistory, dailyReports, cashTransactions, cashRegister,
     updateRoom, checkOutAndRecordBooking, addRoom, deleteRoom,
     addReservation, cancelReservation, checkIn, checkInFromReservation,
-    generateDailyReport, addCashTransaction,
+    generateDailyReport, addCashTransaction, openRegister,
+    addCashMovement, closeRegisterWithArqueo,
   } = useHotelData();
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [activeView, setActiveView] = useState<View>('executive');
@@ -97,6 +101,14 @@ function App() {
         )}
         {activeView === 'reservations' && <ReservationsView rooms={rooms} />}
         {activeView === 'reports' && <ReportsView reports={dailyReports} />}
+        {activeView === 'cashregister' && (
+          <CashRegisterView
+            cashRegister={cashRegister}
+            onOpenRegister={openRegister}
+            onAddCashMovement={addCashMovement}
+            onCloseRegister={closeRegisterWithArqueo}
+          />
+        )}
         {activeView === 'executive' && (
           <ExecutiveDashboard
             rooms={rooms}

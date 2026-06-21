@@ -79,3 +79,43 @@ export interface DailyReport {
         [PaymentMethod.Transfer]: number;
     };
 }
+
+export interface CashMovement {
+  id: string;
+  date: string;
+  time: string;
+  type: 'income' | 'diverse_income' | 'expense' | 'withdrawal' | 'adjustment';
+  amount: number;
+  description: string;
+  user: string;
+}
+
+export interface CashClosing {
+  folio: string;
+  openingDate: string;
+  openingTime: string;
+  closingDate: string;
+  closingTime: string;
+  user: string;
+  initialAmount: number;
+  totalIncome: number;
+  totalDiverseIncome: number;
+  totalExpenses: number;
+  totalWithdrawals: number;
+  totalAdjustments: number;
+  expectedCash: number;
+  countedCash: number;
+  difference: number;
+  isSurplus: boolean;
+  movements: CashMovement[];
+}
+
+export interface CashRegister {
+  isOpen: boolean;
+  openingDate: string;
+  openingTime: string;
+  initialAmount: number;
+  user: string;
+  movements: CashMovement[];
+  closings: CashClosing[];
+}

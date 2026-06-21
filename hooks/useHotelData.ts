@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Room, BookingRecord, Guest, DailyReport, CashTransaction } from '../types';
+import type { Room, BookingRecord, Guest, DailyReport, CashTransaction, CashRegister, CashMovement, CashClosing } from '../types';
 import { RoomStatus, PaymentMethod, IdentificationType } from '../types';
 import { BASE_PRICE_PER_NIGHT } from '../constants';
 
@@ -10,6 +10,7 @@ interface HotelData {
   bookingHistory: BookingRecord[];
   dailyReports: DailyReport[];
   cashTransactions: CashTransaction[];
+  cashRegister: CashRegister;
 }
 
 const initializeHotelData = (): HotelData => {
@@ -24,7 +25,7 @@ const initializeHotelData = (): HotelData => {
       reservations: [],
     });
   }
-  return { rooms, bookingHistory: [], dailyReports: [], cashTransactions: [] };
+  return { rooms, bookingHistory: [], dailyReports: [], cashTransactions: [], cashRegister: { isOpen: false, openingDate: '', openingTime: '', initialAmount: 0, user: '', movements: [], closings: [] } };
 };
 
 export function useHotelData() {
@@ -33,9 +34,11 @@ export function useHotelData() {
       const storedData = window.localStorage.getItem(LOCAL_STORAGE_KEY);
       if (storedData) {
         const parsedData = JSON.parse(storedData);
-        // Ensure cashTransactions exists for backwards compatibility
         if (!parsedData.cashTransactions) {
           parsedData.cashTransactions = [];
+        }
+        if (!parsedData.cashRegister) {
+          parsedData.cashRegister = { isOpen: false, openingDate: '', openingTime: '', initialAmount: 0, user: '', movements: [], closings: [] };
         }
         return parsedData;
       }
@@ -75,6 +78,87 @@ export function useHotelData() {
               cashTransactions: [newTransaction, ...prevData.cashTransactions],
           };
       });
+  }, []);
+
+  const openRegister = useCallback((initialAmount: number, user: string) => {
+    setHotelData(prevData => ({
+      ...prevData,
+      cashRegister: {
+        isOpen: true,
+        openingDate: new Date().toISOString().split('T')[0],
+        openingTime: new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        initialAmount,
+        user,
+        movements: [],
+        closings: prevData.cashRegister.closings,
+      },
+    }));
+  }, []);
+
+  const addCashMovement = useCallback((movement: Omit<CashMovement, 'id' | 'date' | 'time'>) => {
+    setHotelData(prevData => {
+      if (!prevData.cashRegister.isOpen) return prevData;
+      const newMovement: CashMovement = {
+        ...movement,
+        id: `${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      };
+      return {
+        ...prevData,
+        cashRegister: {
+          ...prevData.cashRegister,
+          movements: [...prevData.cashRegister.movements, newMovement],
+        },
+      };
+    });
+  }, []);
+
+  const closeRegisterWithArqueo = useCallback((countedCash: number) => {
+    setHotelData(prevData => {
+      if (!prevData.cashRegister.isOpen) return prevData;
+      const reg = prevData.cashRegister;
+      const totalIncome = reg.movements.filter(m => m.type === 'income').reduce((s, m) => s + m.amount, 0);
+      const totalDiverseIncome = reg.movements.filter(m => m.type === 'diverse_income').reduce((s, m) => s + m.amount, 0);
+      const totalExpenses = reg.movements.filter(m => m.type === 'expense').reduce((s, m) => s + Math.abs(m.amount), 0);
+      const totalWithdrawals = reg.movements.filter(m => m.type === 'withdrawal').reduce((s, m) => s + Math.abs(m.amount), 0);
+      const totalAdjustments = reg.movements.filter(m => m.type === 'adjustment').reduce((s, m) => s + m.amount, 0);
+      const expectedCash = reg.initialAmount + totalIncome + totalDiverseIncome - totalExpenses - totalWithdrawals + totalAdjustments;
+      const difference = countedCash - expectedCash;
+      const now = new Date();
+      const folio = `CJ-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(prevData.cashRegister.closings.length + 1).padStart(3, '0')}`;
+      const closing: CashClosing = {
+        folio,
+        openingDate: reg.openingDate,
+        openingTime: reg.openingTime,
+        closingDate: now.toISOString().split('T')[0],
+        closingTime: now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        user: reg.user,
+        initialAmount: reg.initialAmount,
+        totalIncome,
+        totalDiverseIncome,
+        totalExpenses,
+        totalWithdrawals,
+        totalAdjustments,
+        expectedCash,
+        countedCash,
+        difference,
+        isSurplus: difference >= 0,
+        movements: reg.movements,
+      };
+      return {
+        ...prevData,
+        cashRegister: {
+          isOpen: false,
+          openingDate: '',
+          openingTime: '',
+          initialAmount: 0,
+          user: '',
+          movements: [],
+          closings: [closing, ...prevData.cashRegister.closings],
+        },
+      };
+    });
   }, []);
 
   const updateRoom = useCallback((updatedRoom: Room) => {
@@ -297,5 +381,5 @@ export function useHotelData() {
     });
   }, []);
 
-  return { ...hotelData, updateRoom, checkOutAndRecordBooking, addRoom, deleteRoom, addReservation, cancelReservation, checkIn, checkInFromReservation, generateDailyReport, addCashTransaction };
+  return { ...hotelData, updateRoom, checkOutAndRecordBooking, addRoom, deleteRoom, addReservation, cancelReservation, checkIn, checkInFromReservation, generateDailyReport, addCashTransaction, openRegister, addCashMovement, closeRegisterWithArqueo };
 }
