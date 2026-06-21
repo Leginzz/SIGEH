@@ -1,0 +1,301 @@
+import { useState, useEffect, useCallback } from 'react';
+import type { Room, BookingRecord, Guest, DailyReport, CashTransaction } from '../types';
+import { RoomStatus, PaymentMethod, IdentificationType } from '../types';
+import { BASE_PRICE_PER_NIGHT } from '../constants';
+
+const LOCAL_STORAGE_KEY = 'hotelManagementData_v5';
+
+interface HotelData {
+  rooms: Room[];
+  bookingHistory: BookingRecord[];
+  dailyReports: DailyReport[];
+  cashTransactions: CashTransaction[];
+}
+
+const initializeHotelData = (): HotelData => {
+  const rooms: Room[] = [];
+  const initialRoomCount = 16;
+  for (let i = 1; i <= initialRoomCount; i++) {
+    rooms.push({
+      id: i,
+      status: RoomStatus.Available,
+      pricePerNight: BASE_PRICE_PER_NIGHT + ((i - 1) % 4) * 10,
+      guest: null,
+      reservations: [],
+    });
+  }
+  return { rooms, bookingHistory: [], dailyReports: [], cashTransactions: [] };
+};
+
+export function useHotelData() {
+  const [hotelData, setHotelData] = useState<HotelData>(() => {
+    try {
+      const storedData = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        // Ensure cashTransactions exists for backwards compatibility
+        if (!parsedData.cashTransactions) {
+          parsedData.cashTransactions = [];
+        }
+        return parsedData;
+      }
+    } catch (error) {
+      console.error("Error reading from localStorage", error);
+    }
+    return initializeHotelData();
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(hotelData));
+    } catch (error) {
+      console.error("Error writing to localStorage", error);
+    }
+  }, [hotelData]);
+  
+  const addCashTransaction = useCallback((transaction: Omit<CashTransaction, 'id' | 'date' | 'reportId'>) => {
+      setHotelData(prevData => {
+          const newTransaction: CashTransaction = {
+              ...transaction,
+              id: `${Date.now()}`,
+              date: new Date().toISOString(),
+          };
+          
+          if(transaction.type === 'initial') {
+              // Remove previous initial funds for the current period
+              const updatedTransactions = prevData.cashTransactions.filter(t => t.type !== 'initial' || !!t.reportId);
+              return {
+                  ...prevData,
+                  cashTransactions: [newTransaction, ...updatedTransactions],
+              };
+          }
+
+          return {
+              ...prevData,
+              cashTransactions: [newTransaction, ...prevData.cashTransactions],
+          };
+      });
+  }, []);
+
+  const updateRoom = useCallback((updatedRoom: Room) => {
+    setHotelData(prevData => ({
+      ...prevData,
+      rooms: prevData.rooms.map(room => (room.id === updatedRoom.id ? updatedRoom : room)),
+    }));
+  }, []);
+
+  const addRoom = useCallback(() => {
+    setHotelData(prevData => {
+      const newRoomId = prevData.rooms.length > 0 ? Math.max(...prevData.rooms.map(r => r.id)) + 1 : 1;
+      const newRoom: Room = {
+        id: newRoomId,
+        status: RoomStatus.Available,
+        pricePerNight: BASE_PRICE_PER_NIGHT,
+        guest: null,
+        reservations: [],
+      };
+      return {
+        ...prevData,
+        rooms: [...prevData.rooms, newRoom],
+      };
+    });
+  }, []);
+
+  const deleteRoom = useCallback((roomId: number) => {
+    setHotelData(prevData => {
+      const roomToDelete = prevData.rooms.find(r => r.id === roomId);
+      if (!roomToDelete || roomToDelete.status === RoomStatus.Occupied || roomToDelete.reservations.length > 0) {
+        // Safety check
+        return prevData;
+      }
+      return {
+        ...prevData,
+        rooms: prevData.rooms.filter(room => room.id !== roomId),
+      }
+    });
+  }, []);
+  
+  const addReservation = useCallback((roomId: number, reservationDetails: Guest) => {
+      setHotelData(prevData => {
+          const rooms = prevData.rooms.map(room => {
+              if (room.id === roomId) {
+                  const newStatus = room.status === RoomStatus.Available ? RoomStatus.Reserved : room.status;
+                  return {
+                      ...room,
+                      status: newStatus,
+                      reservations: [...room.reservations, reservationDetails].sort((a,b) => new Date(a.checkInDate).getTime() - new Date(b.checkInDate).getTime()),
+                  };
+              }
+              return room;
+          });
+          return { ...prevData, rooms };
+      });
+  }, []);
+
+  const cancelReservation = useCallback((roomId: number, reservationId: string) => {
+    setHotelData(prevData => {
+        const rooms = prevData.rooms.map(room => {
+            if (room.id === roomId) {
+                const remainingReservations = room.reservations.filter(r => r.id !== reservationId);
+                let newStatus = room.status;
+                if (remainingReservations.length === 0 && room.status === RoomStatus.Reserved) {
+                    newStatus = RoomStatus.Available;
+                }
+                return {
+                    ...room,
+                    status: newStatus,
+                    reservations: remainingReservations,
+                };
+            }
+            return room;
+        });
+        return { ...prevData, rooms };
+    });
+  }, []);
+  
+  const checkIn = useCallback((roomId: number, guestDetails: Guest) => {
+      setHotelData(prevData => {
+          const rooms = prevData.rooms.map(room => {
+              if (room.id === roomId) {
+                  return { ...room, status: RoomStatus.Occupied, guest: guestDetails };
+              }
+              return room;
+          });
+          
+          let newCashTransactions = prevData.cashTransactions;
+          if (guestDetails.paymentMethod === PaymentMethod.Cash) {
+              const newTransaction: CashTransaction = {
+                  id: `${Date.now()}`,
+                  date: new Date().toISOString(),
+                  type: 'income',
+                  amount: guestDetails.totalAgreedPrice,
+                  description: `Check-In Hab. ${roomId} (${guestDetails.name})`,
+              };
+              newCashTransactions = [newTransaction, ...prevData.cashTransactions];
+          }
+
+          return { ...prevData, rooms, cashTransactions: newCashTransactions };
+      });
+  }, []);
+
+  const checkInFromReservation = useCallback((roomId: number, reservationId: string) => {
+      setHotelData(prevData => {
+          let guestDetails: Guest | undefined;
+          const rooms = prevData.rooms.map(room => {
+              if (room.id === roomId) {
+                  const reservationToCheckIn = room.reservations.find(r => r.id === reservationId);
+                  const remainingReservations = room.reservations.filter(r => r.id !== reservationId);
+                  
+                  if (!reservationToCheckIn) return room;
+                  guestDetails = reservationToCheckIn;
+
+                  return {
+                      ...room,
+                      status: RoomStatus.Occupied,
+                      guest: reservationToCheckIn,
+                      reservations: remainingReservations,
+                  };
+              }
+              return room;
+          });
+
+          let newCashTransactions = prevData.cashTransactions;
+          if (guestDetails && guestDetails.paymentMethod === PaymentMethod.Cash) {
+              const newTransaction: CashTransaction = {
+                  id: `${Date.now()}`,
+                  date: new Date().toISOString(),
+                  type: 'income',
+                  amount: guestDetails.totalAgreedPrice,
+                  description: `Check-In Hab. ${roomId} (${guestDetails.name})`,
+              };
+              newCashTransactions = [newTransaction, ...prevData.cashTransactions];
+          }
+
+          return { ...prevData, rooms, cashTransactions: newCashTransactions };
+      });
+  }, []);
+
+  const checkOutAndRecordBooking = useCallback((
+    roomToCheckOut: Room
+  ) => {
+    if (!roomToCheckOut.guest) return;
+
+    const { guest, id: roomId } = roomToCheckOut;
+
+    const checkIn = new Date(guest.checkInDate);
+    const finalCheckOutDate = new Date(); // Use current date for checkout
+    
+    const diffTime = Math.abs(finalCheckOutDate.getTime() - checkIn.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const numberOfNights = Math.max(1, diffDays);
+
+    const newBookingRecord: BookingRecord = {
+      id: `${Date.now()}-${roomId}`,
+      roomId,
+      guestName: guest.name,
+      checkInDate: guest.checkInDate,
+      checkOutDate: finalCheckOutDate.toISOString().split('T')[0],
+      numberOfNights,
+      totalIncome: guest.totalAgreedPrice,
+      paymentMethod: guest.paymentMethod,
+      invoiceRequested: guest.invoiceRequested,
+    };
+    
+    const newStatus = roomToCheckOut.reservations.length > 0 ? RoomStatus.Reserved : RoomStatus.Cleaning;
+    const updatedRoom: Room = { ...roomToCheckOut, status: newStatus, guest: null };
+
+    setHotelData(prevData => ({
+      ...prevData,
+      rooms: prevData.rooms.map(room => (room.id === updatedRoom.id ? updatedRoom : room)),
+      bookingHistory: [newBookingRecord, ...prevData.bookingHistory],
+    }));
+
+  }, []);
+
+  const generateDailyReport = useCallback(() => {
+    setHotelData(prevData => {
+      const bookingsToReport = prevData.bookingHistory.filter(b => !b.reportId);
+      const cashTransactionsToReport = prevData.cashTransactions.filter(t => !t.reportId);
+
+      if (bookingsToReport.length === 0 && cashTransactionsToReport.length === 0) return prevData;
+
+      const reportId = new Date().toISOString();
+      const totalIncome = bookingsToReport.reduce((sum, b) => sum + b.totalIncome, 0);
+      
+      const breakdown = bookingsToReport.reduce((acc, b) => {
+          acc[b.paymentMethod] = (acc[b.paymentMethod] || 0) + b.totalIncome;
+          return acc;
+      }, {
+          [PaymentMethod.Cash]: 0,
+          [PaymentMethod.Card]: 0,
+          [PaymentMethod.Transfer]: 0,
+      });
+
+      const newReport: DailyReport = {
+        id: reportId,
+        date: new Date().toISOString().split('T')[0],
+        totalIncome,
+        bookingsIncluded: bookingsToReport,
+        cashTransactionsIncluded: cashTransactionsToReport,
+        breakdown,
+      };
+
+      const updatedBookingHistory = prevData.bookingHistory.map(b => 
+        !b.reportId ? { ...b, reportId } : b
+      );
+
+      const updatedCashTransactions = prevData.cashTransactions.map(t =>
+        !t.reportId ? { ...t, reportId } : t
+      );
+
+      return {
+        ...prevData,
+        bookingHistory: updatedBookingHistory,
+        cashTransactions: updatedCashTransactions,
+        dailyReports: [newReport, ...prevData.dailyReports],
+      };
+    });
+  }, []);
+
+  return { ...hotelData, updateRoom, checkOutAndRecordBooking, addRoom, deleteRoom, addReservation, cancelReservation, checkIn, checkInFromReservation, generateDailyReport, addCashTransaction };
+}
