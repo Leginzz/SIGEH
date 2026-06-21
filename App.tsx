@@ -4,11 +4,12 @@ import RoomModal from './components/RoomModal';
 import Dashboard from './components/Dashboard';
 import ReservationsView from './components/ReservationsView';
 import ReportsView from './components/ReportsView';
+import ExecutiveDashboard from './components/ExecutiveDashboard';
 import { useHotelData } from './hooks/useHotelData';
 import type { Room } from './types';
-import { BedIcon, ChartBarIcon, BookmarkSquareIcon, ArchiveBoxIcon } from './components/icons/Icons';
+import { BedIcon, ChartBarIcon, BookmarkSquareIcon, ArchiveBoxIcon, PresentationChartIcon } from './components/icons/Icons';
 
-type View = 'rooms' | 'dashboard' | 'reservations' | 'reports';
+type View = 'rooms' | 'dashboard' | 'reservations' | 'reports' | 'executive';
 
 function App() {
   const { 
@@ -73,7 +74,8 @@ function App() {
               rooms: `Gestionando ${rooms.length} habitaciones en tiempo real.`,
               dashboard: 'Control de caja y análisis de ingresos del período actual.',
               reservations: 'Vista y gestión de futuras reservas.',
-              reports: 'Historial de cortes de caja e informes financieros.'
+              reports: 'Historial de cortes de caja e informes financieros.',
+              executive: 'Métricas clave, gráficas y rendimiento del hotel en tiempo real.'
             }[activeView]
           }
         </p>
@@ -85,6 +87,7 @@ function App() {
             <NavButton view="dashboard" label="Caja" icon={<ChartBarIcon className="w-5 h-5" />} />
             <NavButton view="reservations" label="Reservas" icon={<BookmarkSquareIcon className="w-5 h-5" />} />
             <NavButton view="reports" label="Informes" icon={<ArchiveBoxIcon className="w-5 h-5" />} />
+            <NavButton view="executive" label="Ejecutivo" icon={<PresentationChartIcon className="w-5 h-5" />} />
         </div>
       </nav>
       
@@ -93,6 +96,14 @@ function App() {
         {activeView === 'dashboard' && <Dashboard cashTransactions={cashTransactions} onGenerateReport={generateDailyReport} onAddCashTransaction={addCashTransaction} />}
         {activeView === 'reservations' && <ReservationsView rooms={rooms} />}
         {activeView === 'reports' && <ReportsView reports={dailyReports} />}
+        {activeView === 'executive' && (
+          <ExecutiveDashboard
+            rooms={rooms}
+            bookingHistory={bookingHistory}
+            cashTransactions={cashTransactions}
+            dailyReports={dailyReports}
+          />
+        )}
       </main>
 
       {selectedRoom && (
