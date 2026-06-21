@@ -69,13 +69,13 @@ const CashManagementView: React.FC<CashManagementViewProps> = ({
           value={`$${kpis.todayIncome.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
           subtitle={`${kpis.pendingCheckouts} check-outs pendientes`}
           icon={<CurrencyDollarIcon className="w-6 h-6" />}
-          color="emerald"
+          color="green"
         />
         <KpiCard
           title="Ingresos del Mes"
           value={`$${kpis.monthIncome.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
           icon={<CalendarDaysIcon className="w-6 h-6" />}
-          color="indigo"
+          color="purple"
         />
         <KpiCard
           title="Habs Ocupadas"
@@ -89,7 +89,7 @@ const CashManagementView: React.FC<CashManagementViewProps> = ({
           value={`$${kpis.expectedBalance.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
           subtitle={`Gastos: $${kpis.totalExpenses.toFixed(2)}`}
           icon={<BanknotesIcon className="w-6 h-6" />}
-          color="amber"
+          color="yellow"
         />
       </div>
 
