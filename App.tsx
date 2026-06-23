@@ -51,7 +51,7 @@ function App() {
     <div className="flex min-h-screen bg-gray-100">
       <aside className="w-64 bg-slate-900 text-white flex-shrink-0 min-h-screen flex flex-col">
         <div className="p-5 border-b border-slate-700 flex flex-col items-center">
-          <img src="/logo.png" alt="SIGEH" className="h-12 w-auto" />
+          <img src="logo.png" alt="SIGEH" className="h-12 w-auto" />
           <p className="text-xs text-slate-400 mt-1">Sistema de Gestión Hotelera</p>
         </div>
         <nav className="flex-1 p-3 space-y-1">
