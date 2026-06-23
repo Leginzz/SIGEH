@@ -75,6 +75,8 @@ export interface CashTransaction {
     reservationId?: string;
     paymentMethod?: PaymentMethod;
     registerSessionId?: string;
+    numberOfNights?: number;
+    checkInDate?: string;
 }
 
 export interface DailyReport {

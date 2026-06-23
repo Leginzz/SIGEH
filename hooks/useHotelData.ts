@@ -411,6 +411,8 @@ export function useHotelData() {
         guestName: guest.name,
         paymentMethod: guest.paymentMethod,
         registerSessionId: prevData.cashRegister.isOpen ? prevData.cashRegister.sessionId : undefined,
+        numberOfNights,
+        checkInDate: guest.checkInDate,
       };
       return {
         ...prevData,
