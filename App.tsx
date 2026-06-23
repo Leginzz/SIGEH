@@ -5,15 +5,17 @@ import ReservationsView from './components/ReservationsView';
 import ReportsView from './components/ReportsView';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
 import CashView from './components/CashView';
+import OccupancyCalendarView from './components/OccupancyCalendarView';
 import { useHotelData } from './hooks/useHotelData';
 import type { Room } from './types';
-import { BedIcon, BookmarkSquareIcon, ArchiveBoxIcon, PresentationChartIcon, CurrencyDollarIcon } from './components/icons/Icons';
+import { BedIcon, BookmarkSquareIcon, ArchiveBoxIcon, PresentationChartIcon, CurrencyDollarIcon, CalendarDaysIcon } from './components/icons/Icons';
 
-type View = 'rooms' | 'reservations' | 'reports' | 'executive' | 'cash';
+type View = 'rooms' | 'reservations' | 'reports' | 'executive' | 'cash' | 'calendar';
 
 const navItems: { view: View; label: string; icon: React.ReactNode }[] = [
   { view: 'executive', label: 'Dashboard', icon: <PresentationChartIcon className="w-5 h-5" /> },
   { view: 'rooms', label: 'Habitaciones', icon: <BedIcon className="w-5 h-5" /> },
+  { view: 'calendar', label: 'Calendario', icon: <CalendarDaysIcon className="w-5 h-5" /> },
   { view: 'cash', label: 'Caja', icon: <CurrencyDollarIcon className="w-5 h-5" /> },
   { view: 'reservations', label: 'Reservas', icon: <BookmarkSquareIcon className="w-5 h-5" /> },
   { view: 'reports', label: 'Informes', icon: <ArchiveBoxIcon className="w-5 h-5" /> },
@@ -22,6 +24,7 @@ const navItems: { view: View; label: string; icon: React.ReactNode }[] = [
 const descriptions: Record<View, string> = {
   executive: 'Métricas clave, gráficas y rendimiento del hotel en tiempo real.',
   rooms: 'Gestión de habitaciones en tiempo real.',
+  calendar: 'Calendario de ocupación visual por día. Consulta disponibilidad, reservas y ocupación.',
   cash: 'Centro financiero unificado. Apertura, movimientos, arqueo, cierre e historial.',
   reservations: 'Vista y gestión de futuras reservas.',
   reports: 'Historial de cortes de caja e informes financieros.',
@@ -98,6 +101,7 @@ function App() {
         )}
         {activeView === 'reservations' && <ReservationsView rooms={rooms} />}
         {activeView === 'reports' && <ReportsView reports={dailyReports} />}
+        {activeView === 'calendar' && <OccupancyCalendarView rooms={rooms} />}
         {activeView === 'executive' && (
           <ExecutiveDashboard
             rooms={rooms}
