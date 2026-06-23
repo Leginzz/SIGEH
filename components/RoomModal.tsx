@@ -9,7 +9,7 @@ interface RoomModalProps {
   room: Room;
   onClose: () => void;
   onUpdateRoom: (room: Room) => void;
-  onCheckOutAndRecord: (room: Room) => void;
+  onCheckOutAndRecord: (room: Room, amountCollected: number) => void;
   onDeleteRoom: (roomId: number) => void;
   onAddReservation: (roomId: number, guest: Guest) => void;
   onCancelReservation: (roomId: number, reservationId: string) => void;
@@ -93,7 +93,7 @@ const RoomModal: React.FC<RoomModalProps> = (props) => {
     }
 
     if (modalView === 'checkout') {
-      return <CheckOutForm room={room} onConfirm={() => handleAction(onCheckOutAndRecord, room)} onCancel={() => setModalView('main')} />;
+      return <CheckOutForm room={room} onConfirm={(amount) => handleAction(onCheckOutAndRecord, room, amount)} onCancel={() => setModalView('main')} />;
     }
 
     switch (room.status) {
@@ -174,8 +174,21 @@ const RoomModal: React.FC<RoomModalProps> = (props) => {
               {room.guest.hasVehicle && <div className="flex items-start"><TruckIcon className="w-5 h-5 mr-3 text-indigo-500 mt-1" /> <strong>Vehículo:</strong> <span className="ml-auto text-gray-900 text-right">{room.guest.vehicleDetails || 'Sí'}</span></div>}
               {room.guest.notes && <div className="text-sm pt-2"><strong>Notas:</strong> {room.guest.notes}</div>}
               <hr className="border-gray-200 my-3" />
-              <div className="flex items-center text-lg"><CurrencyDollarIcon className="w-5 h-5 mr-3 text-green-600" /> <strong>Total Pagado:</strong> <span className="ml-auto text-green-600 font-bold">${room.guest.totalAgreedPrice.toFixed(2)}</span></div>
-              <div className="text-sm text-gray-400 text-right">Pagado con {room.guest.paymentMethod}</div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Total estancia</span>
+                <span className="font-semibold text-gray-900">${room.guest.totalAgreedPrice.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Pagado en check-in</span>
+                <span className="font-medium text-emerald-600">-${(room.guest.amountPaidAtCheckIn ?? room.guest.totalAgreedPrice).toFixed(2)}</span>
+              </div>
+              {room.guest.amountPaidAtCheckIn != null && room.guest.amountPaidAtCheckIn < room.guest.totalAgreedPrice && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Saldo pendiente</span>
+                  <span className="font-bold text-red-600">${(room.guest.totalAgreedPrice - room.guest.amountPaidAtCheckIn).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="text-sm text-gray-400 text-right mt-1">Pagado con {room.guest.paymentMethod}</div>
             </div>
             <button onClick={() => setModalView('checkout')} className="mt-6 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">
               Registrar Salida

@@ -154,11 +154,43 @@ const CheckInForm: React.FC<CheckInFormProps> = ({ room, onConfirm, onCancel, mo
 
       <hr className="border-gray-200" />
       <h4 className="text-lg font-semibold text-gray-800">Detalles del Pago</h4>
-      <div>
-        <label htmlFor="totalAgreedPrice" className={labelClass}>Precio Total Acordado ($)</label>
-        <input type="number" name="totalAgreedPrice" id="totalAgreedPrice" value={guest.totalAgreedPrice} onChange={handleChange} required className={`${inputClass} font-bold text-lg text-green-700`} />
-        <p className="text-xs text-gray-500 mt-1">Calculado: ${calculatedPrice.toFixed(2)}. Puede modificarlo para aplicar descuentos.</p>
-      </div>
+      {mode === 'checkin' && (
+        <>
+          <div>
+            <label htmlFor="totalAgreedPrice" className={labelClass}>Total de la Estancia ($)</label>
+            <input type="number" name="totalAgreedPrice" id="totalAgreedPrice" value={guest.totalAgreedPrice} onChange={handleChange} required className={`${inputClass} font-bold text-lg text-green-700`} />
+            <p className="text-xs text-gray-500 mt-1">Calculado: ${calculatedPrice.toFixed(2)}. Puede modificarlo para aplicar descuentos.</p>
+          </div>
+          <div>
+            <label htmlFor="amountPaidAtCheckIn" className={labelClass}>Monto Pagado Ahora ($)</label>
+            <input type="number" name="amountPaidAtCheckIn" id="amountPaidAtCheckIn" value={guest.amountPaidAtCheckIn ?? guest.totalAgreedPrice} onChange={e => setGuest(prev => ({ ...prev, amountPaidAtCheckIn: Number(e.target.value) }))} min="0" max={guest.totalAgreedPrice} className={`${inputClass} font-bold text-lg text-blue-700`} />
+            <p className="text-xs text-gray-500 mt-1">Monto que el huésped paga en este momento.</p>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Total estancia:</span>
+              <span className="font-semibold text-gray-900">${guest.totalAgreedPrice.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Pagado ahora:</span>
+              <span className="font-semibold text-emerald-600">-${(guest.amountPaidAtCheckIn ?? guest.totalAgreedPrice).toFixed(2)}</span>
+            </div>
+            <div className="border-t border-amber-200 pt-1 mt-1 flex justify-between font-bold">
+              <span className="text-gray-700">Saldo pendiente:</span>
+              <span className={guest.totalAgreedPrice - (guest.amountPaidAtCheckIn ?? guest.totalAgreedPrice) > 0 ? 'text-red-600' : 'text-emerald-600'}>
+                ${Math.max(0, guest.totalAgreedPrice - (guest.amountPaidAtCheckIn ?? guest.totalAgreedPrice)).toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </>
+      )}
+      {mode === 'reservation' && (
+        <div>
+          <label htmlFor="totalAgreedPrice" className={labelClass}>Precio Total Acordado ($)</label>
+          <input type="number" name="totalAgreedPrice" id="totalAgreedPrice" value={guest.totalAgreedPrice} onChange={handleChange} required className={`${inputClass} font-bold text-lg text-green-700`} />
+          <p className="text-xs text-gray-500 mt-1">Calculado: ${calculatedPrice.toFixed(2)}. Puede modificarlo para aplicar descuentos.</p>
+        </div>
+      )}
       <div>
         <label className={labelClass + " mb-2"}>Método de Pago</label>
         <select name="paymentMethod" value={guest.paymentMethod} onChange={handleChange} className={inputClass}>

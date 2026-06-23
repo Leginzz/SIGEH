@@ -33,6 +33,7 @@ export interface Guest {
   numberOfTowels: number;
   notes?: string;
   totalAgreedPrice: number;
+  amountPaidAtCheckIn?: number;
   paymentMethod: PaymentMethod;
   invoiceRequested: boolean;
   depositAmount?: number;
