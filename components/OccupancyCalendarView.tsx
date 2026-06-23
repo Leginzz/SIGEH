@@ -63,7 +63,7 @@ const CELL_LABELS: Record<string, string> = {
 };
 
 function isDateBetween(date: string, start: string, end: string): boolean {
-  return date >= start && date <= end;
+  return date >= start && date < end;
 }
 
 const OccupancyCalendarView: React.FC<OccupancyCalendarViewProps> = ({ rooms }) => {
@@ -210,16 +210,16 @@ const OccupancyCalendarView: React.FC<OccupancyCalendarViewProps> = ({ rooms }) 
       {/* Calendar Grid */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs border-collapse" style={{ minWidth: days.length * 80 + 120 }}>
+          <table className="w-full text-xs border-collapse" style={{ minWidth: days.length * 36 + 100 }}>
             <thead>
               <tr>
-                <th className="sticky left-0 bg-white z-10 px-2 py-2 text-left font-medium text-gray-500 border-b border-gray-200" style={{ minWidth: 120 }}>
+                <th className="sticky left-0 bg-white z-10 px-1.5 py-1 text-left font-medium text-gray-500 border-b border-gray-200 text-[10px]" style={{ minWidth: 100 }}>
                   Habitación
                 </th>
                 {days.map(d => (
-                  <th key={d.date} className={`px-1.5 py-2 text-center font-medium border-b border-gray-200 ${d.isToday ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500'}`}>
-                    <div>{DAY_NAMES[new Date(d.date + 'T00:00:00').getDay()]}</div>
-                    <div className={`text-base ${d.isToday ? 'font-bold' : ''}`}>{d.day}</div>
+                  <th key={d.date} className={`px-0.5 py-1 text-center font-medium border-b border-gray-200 ${d.isToday ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500'}`}>
+                    <div className="text-[9px] leading-tight">{DAY_NAMES[new Date(d.date + 'T00:00:00').getDay()]}</div>
+                    <div className={`text-xs leading-tight ${d.isToday ? 'font-bold' : ''}`}>{d.day}</div>
                   </th>
                 ))}
               </tr>
@@ -229,30 +229,20 @@ const OccupancyCalendarView: React.FC<OccupancyCalendarViewProps> = ({ rooms }) 
                 const roomCells = days.map(d => cells.get(d.date)?.get(room.id));
                 return (
                   <tr key={room.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="sticky left-0 bg-white z-10 px-2 py-1.5 font-medium text-gray-900 border-r border-gray-100">
-                      Hab. {room.id}
+                    <td className="sticky left-0 bg-white z-10 px-1.5 py-0.5 font-medium text-gray-900 border-r border-gray-100 text-[10px] leading-tight">
+                      {room.id}
                     </td>
                     {roomCells.map((cell, i) => {
                       if (!cell) return <td key={i} className="border-r border-gray-50 p-1" />;
                       const guestName = cell.guest?.name || cell.reservation?.name || '';
                       const colorClass = CELL_COLORS[cell.status] || CELL_COLORS.available;
                       return (
-                        <td key={i} className="border-r border-gray-50 p-0.5">
+                        <td key={i} className="border-r border-gray-50 p-px">
                           <button
                             onClick={() => setSelectedCell({ roomId: room.id, date: days[i].date, status: cell })}
-                            className={`w-full h-14 rounded border ${colorClass} flex flex-col items-center justify-center text-xs leading-tight transition-opacity hover:opacity-80 cursor-pointer`}
+                            className={`w-full h-7 rounded-[3px] border ${colorClass} transition-opacity hover:opacity-80 cursor-pointer`}
                             title={`Hab. ${room.id} - ${CELL_LABELS[cell.status]}${guestName ? ` - ${guestName}` : ''}`}
-                          >
-                            <span className="font-semibold text-gray-800 leading-tight truncate max-w-full px-0.5">
-                              {guestName || CELL_LABELS[cell.status]}
-                            </span>
-                            {guestName && cell.status === 'occupied' && (
-                              <span className="text-[10px] text-gray-500 leading-tight">Ocupada</span>
-                            )}
-                            {guestName && cell.status === 'reserved' && (
-                              <span className="text-[10px] text-gray-500 leading-tight">Reservada</span>
-                            )}
-                          </button>
+                          />
                         </td>
                       );
                     })}
