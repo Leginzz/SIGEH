@@ -41,7 +41,7 @@ const CashView: React.FC<CashViewProps> = ({
   rooms, cashTransactions, cashRegister,
   onOpenRegister, onAddCashTransaction, onCloseRegister,
 }) => {
-  const kpis = useCash(rooms, [], cashTransactions, cashRegister);
+  const kpis = useCash(rooms, cashTransactions, cashRegister);
   const [tab, setTab] = useState<'dashboard' | 'history'>('dashboard');
   const [periodTab, setPeriodTab] = useState<'today' | 'month'>('today');
   const [showOpeningForm, setShowOpeningForm] = useState(false);

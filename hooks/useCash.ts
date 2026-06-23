@@ -22,7 +22,6 @@ export interface CashKpis {
 
 export function useCash(
   rooms: Room[],
-  _bookingHistory: never[],
   cashTransactions: CashTransaction[],
   cashRegister: CashRegister
 ): CashKpis {

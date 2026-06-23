@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Room, BookingRecord, CashTransaction, DailyReport } from '../types';
+import type { Room, CashTransaction, DailyReport } from '../types';
 import { RoomStatus, PaymentMethod } from '../types';
 
 export interface KpiData {
@@ -39,7 +39,6 @@ export interface ActivityItem {
 
 export function useDashboardStats(
   rooms: Room[],
-  _bookingHistory: BookingRecord[],
   cashTransactions: CashTransaction[],
   dailyReports: DailyReport[]
 ) {

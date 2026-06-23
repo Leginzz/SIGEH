@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Room, BookingRecord, CashTransaction, DailyReport } from '../types';
+import type { Room, CashTransaction, DailyReport } from '../types';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import KpiCard from './KpiCard';
 import BarChart from './charts/BarChart';
@@ -10,7 +10,6 @@ import { CurrencyDollarIcon, CalendarDaysIcon, BuildingOfficeIcon } from './icon
 
 interface ExecutiveDashboardProps {
   rooms: Room[];
-  bookingHistory: BookingRecord[];
   cashTransactions: CashTransaction[];
   dailyReports: DailyReport[];
 }
@@ -18,7 +17,6 @@ interface ExecutiveDashboardProps {
 const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = (props) => {
   const { kpis, revenueDays, paymentMethods, statusCounts, recentActivity } = useDashboardStats(
     props.rooms,
-    props.bookingHistory,
     props.cashTransactions,
     props.dailyReports
   );

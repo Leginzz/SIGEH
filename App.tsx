@@ -101,7 +101,6 @@ function App() {
         {activeView === 'executive' && (
           <ExecutiveDashboard
             rooms={rooms}
-            bookingHistory={bookingHistory}
             cashTransactions={cashTransactions}
             dailyReports={dailyReports}
           />
