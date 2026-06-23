@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Room, BookingRecord, Guest, DailyReport, CashTransaction, CashRegister, CashMovement, CashClosing, PaymentEntry } from '../types';
-import { RoomStatus, PaymentMethod, IdentificationType } from '../types';
+import type { Room, BookingRecord, Guest, DailyReport, CashTransaction, CashRegister, CashMovement, CashClosing, PaymentEntry, DenominationCount } from '../types';
+import { RoomStatus, PaymentMethod, IdentificationType, denomTotal } from '../types';
 import { BASE_PRICE_PER_NIGHT } from '../constants';
 
 const LOCAL_STORAGE_KEY = 'hotelManagementData_v5';
@@ -133,7 +133,8 @@ export function useHotelData() {
     });
   }, []);
 
-  const closeRegisterWithArqueo = useCallback((countedCash: number) => {
+  const closeRegisterWithArqueo = useCallback((denominations: DenominationCount) => {
+    const countedCash = denomTotal(denominations);
     setHotelData(prevData => {
       if (!prevData.cashRegister.isOpen) return prevData;
       const reg = prevData.cashRegister;
@@ -176,6 +177,8 @@ export function useHotelData() {
         difference,
         isSurplus: difference >= 0,
         movements: reg.movements,
+        denominations,
+        registerSessionId: reg.sessionId,
       };
       return {
         ...prevData,

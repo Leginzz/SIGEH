@@ -99,6 +99,35 @@ export interface DailyReport {
     };
 }
 
+export interface DenominationCount {
+  bill1000: number;
+  bill500: number;
+  bill200: number;
+  bill100: number;
+  bill50: number;
+  bill20: number;
+  coin20: number;
+  coin10: number;
+  coin5: number;
+  coin2: number;
+  coin1: number;
+  coin050: number;
+}
+
+export const DEFAULT_DENOMINATIONS: DenominationCount = {
+  bill1000: 0, bill500: 0, bill200: 0, bill100: 0, bill50: 0, bill20: 0,
+  coin20: 0, coin10: 0, coin5: 0, coin2: 0, coin1: 0, coin050: 0,
+};
+
+export const DENOMINATION_VALUES: Record<keyof DenominationCount, number> = {
+  bill1000: 1000, bill500: 500, bill200: 200, bill100: 100, bill50: 50, bill20: 20,
+  coin20: 20, coin10: 10, coin5: 5, coin2: 2, coin1: 1, coin050: 0.50,
+};
+
+export function denomTotal(d: DenominationCount): number {
+  return (Object.keys(DENOMINATION_VALUES) as (keyof DenominationCount)[]).reduce((s, k) => s + d[k] * DENOMINATION_VALUES[k], 0);
+}
+
 export interface CashMovement {
   id: string;
   date: string;
@@ -127,6 +156,8 @@ export interface CashClosing {
   difference: number;
   isSurplus: boolean;
   movements: CashMovement[];
+  denominations?: DenominationCount;
+  registerSessionId?: string;
 }
 
 export interface CashRegister {
