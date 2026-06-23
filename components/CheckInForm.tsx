@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import type { Guest, Room } from '../types';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import type { Guest, Room, PaymentEntry } from '../types';
 import { MAX_GUEST_PER_ROOM } from '../constants';
 import { IdentificationType, PaymentMethod } from '../types';
 
@@ -9,6 +9,8 @@ interface CheckInFormProps {
   onCancel: () => void;
   mode: 'checkin' | 'reservation';
 }
+
+const availableMethods = Object.values(PaymentMethod);
 
 const CheckInForm: React.FC<CheckInFormProps> = ({ room, onConfirm, onCancel, mode }) => {
   const [guest, setGuest] = useState<Omit<Guest, 'id'>>({
@@ -24,9 +26,10 @@ const CheckInForm: React.FC<CheckInFormProps> = ({ room, onConfirm, onCancel, mo
     numberOfTowels: 2,
     notes: '',
     totalAgreedPrice: 0,
-    paymentMethod: PaymentMethod.Card,
     invoiceRequested: false,
   });
+
+  const [payments, setPayments] = useState<PaymentEntry[]>([]);
 
   const calculatedPrice = useMemo(() => {
     if (!guest.checkInDate || !guest.checkOutDate) return 0;
@@ -43,6 +46,9 @@ const CheckInForm: React.FC<CheckInFormProps> = ({ room, onConfirm, onCancel, mo
     setGuest(prev => ({ ...prev, totalAgreedPrice: calculatedPrice }));
   }, [calculatedPrice]);
 
+  const totalPaid = payments.reduce((s, p) => s + p.amount, 0);
+  const pendingBalance = Math.max(0, guest.totalAgreedPrice - totalPaid);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     if (type === 'checkbox') {
@@ -52,6 +58,20 @@ const CheckInForm: React.FC<CheckInFormProps> = ({ room, onConfirm, onCancel, mo
       setGuest(prev => ({ ...prev, [name]: (name === 'numberOfGuests' || name === 'numberOfTowels' || name === 'totalAgreedPrice') ? Number(value) : value }));
     }
   };
+
+  const addPayment = useCallback(() => {
+    const usedMethods = payments.map(p => p.method);
+    const nextMethod = availableMethods.find(m => !usedMethods.includes(m)) || PaymentMethod.Cash;
+    setPayments(prev => [...prev, { method: nextMethod, amount: 0 }]);
+  }, [payments]);
+
+  const updatePayment = useCallback((index: number, field: keyof PaymentEntry, value: PaymentMethod | number) => {
+    setPayments(prev => prev.map((p, i) => i === index ? { ...p, [field]: value } : p));
+  }, []);
+
+  const removePayment = useCallback((index: number) => {
+    setPayments(prev => prev.filter((_, i) => i !== index));
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,11 +89,27 @@ const CheckInForm: React.FC<CheckInFormProps> = ({ room, onConfirm, onCancel, mo
       return;
     }
 
-    if (guest.name && guest.checkOutDate && guest.contact && guest.identificationNumber) {
-      onConfirm({ ...guest, id: `${Date.now()}-${room.id}` });
-    } else {
+    if (!guest.name || !guest.checkOutDate || !guest.contact || !guest.identificationNumber) {
       alert("Por favor, complete todos los campos requeridos (Nombre, Contacto, Fechas, Identificación).");
+      return;
     }
+
+    if (mode === 'checkin' && payments.length === 0) {
+      alert("Debe agregar al menos un pago.");
+      return;
+    }
+
+    if (totalPaid > guest.totalAgreedPrice) {
+      alert("El total pagado no puede exceder el total de la estancia.");
+      return;
+    }
+
+    if (payments.some(p => p.amount <= 0)) {
+      alert("Todos los montos de pago deben ser mayores a 0.");
+      return;
+    }
+
+    onConfirm({ ...guest, id: `${Date.now()}-${room.id}`, payments: mode === 'checkin' ? payments : undefined });
   };
 
   const inputClass = "mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500";
@@ -154,18 +190,38 @@ const CheckInForm: React.FC<CheckInFormProps> = ({ room, onConfirm, onCancel, mo
 
       <hr className="border-gray-200" />
       <h4 className="text-lg font-semibold text-gray-800">Detalles del Pago</h4>
+      <div>
+        <label htmlFor="totalAgreedPrice" className={labelClass}>Total de la Estancia ($)</label>
+        <input type="number" name="totalAgreedPrice" id="totalAgreedPrice" value={guest.totalAgreedPrice} onChange={handleChange} required className={`${inputClass} font-bold text-lg text-green-700`} />
+        <p className="text-xs text-gray-500 mt-1">Calculado: ${calculatedPrice.toFixed(2)}. Puede modificarlo para aplicar descuentos.</p>
+      </div>
+
       {mode === 'checkin' && (
         <>
-          <div>
-            <label htmlFor="totalAgreedPrice" className={labelClass}>Total de la Estancia ($)</label>
-            <input type="number" name="totalAgreedPrice" id="totalAgreedPrice" value={guest.totalAgreedPrice} onChange={handleChange} required className={`${inputClass} font-bold text-lg text-green-700`} />
-            <p className="text-xs text-gray-500 mt-1">Calculado: ${calculatedPrice.toFixed(2)}. Puede modificarlo para aplicar descuentos.</p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className={`${labelClass} mb-0`}>Pagos</label>
+              <button type="button" onClick={addPayment} className="text-sm bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-medium py-1 px-3 rounded transition-colors">
+                + Agregar pago
+              </button>
+            </div>
+            {payments.map((p, i) => (
+              <div key={i} className="flex items-center gap-2 bg-gray-50 p-2 rounded border border-gray-200">
+                <select value={p.method} onChange={e => updatePayment(i, 'method', e.target.value as PaymentMethod)} className="bg-white border border-gray-300 rounded-md py-1.5 px-2 text-sm text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                  {availableMethods.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+                <div className="relative flex-1">
+                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+                  <input type="number" value={p.amount || ''} onChange={e => updatePayment(i, 'amount', Math.max(0, Number(e.target.value)))} min="0" placeholder="0.00" className="w-full bg-white border border-gray-300 rounded-md py-1.5 pl-6 pr-2 text-sm text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <button type="button" onClick={() => removePayment(i)} className="text-red-500 hover:text-red-700 text-lg leading-none px-1" title="Quitar pago">&times;</button>
+              </div>
+            ))}
+            {payments.length === 0 && (
+              <p className="text-sm text-gray-400 italic">No hay pagos registrados. Agregue al menos uno.</p>
+            )}
           </div>
-          <div>
-            <label htmlFor="amountPaidAtCheckIn" className={labelClass}>Monto Pagado Ahora ($)</label>
-            <input type="number" name="amountPaidAtCheckIn" id="amountPaidAtCheckIn" value={guest.amountPaidAtCheckIn ?? guest.totalAgreedPrice} onChange={e => setGuest(prev => ({ ...prev, amountPaidAtCheckIn: Number(e.target.value) }))} min="0" max={guest.totalAgreedPrice} className={`${inputClass} font-bold text-lg text-blue-700`} />
-            <p className="text-xs text-gray-500 mt-1">Monto que el huésped paga en este momento.</p>
-          </div>
+
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Total estancia:</span>
@@ -173,30 +229,17 @@ const CheckInForm: React.FC<CheckInFormProps> = ({ room, onConfirm, onCancel, mo
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Pagado ahora:</span>
-              <span className="font-semibold text-emerald-600">-${(guest.amountPaidAtCheckIn ?? guest.totalAgreedPrice).toFixed(2)}</span>
+              <span className="font-semibold text-emerald-600">-${totalPaid.toFixed(2)}</span>
             </div>
             <div className="border-t border-amber-200 pt-1 mt-1 flex justify-between font-bold">
               <span className="text-gray-700">Saldo pendiente:</span>
-              <span className={guest.totalAgreedPrice - (guest.amountPaidAtCheckIn ?? guest.totalAgreedPrice) > 0 ? 'text-red-600' : 'text-emerald-600'}>
-                ${Math.max(0, guest.totalAgreedPrice - (guest.amountPaidAtCheckIn ?? guest.totalAgreedPrice)).toFixed(2)}
+              <span className={pendingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}>
+                ${pendingBalance.toFixed(2)}
               </span>
             </div>
           </div>
         </>
       )}
-      {mode === 'reservation' && (
-        <div>
-          <label htmlFor="totalAgreedPrice" className={labelClass}>Precio Total Acordado ($)</label>
-          <input type="number" name="totalAgreedPrice" id="totalAgreedPrice" value={guest.totalAgreedPrice} onChange={handleChange} required className={`${inputClass} font-bold text-lg text-green-700`} />
-          <p className="text-xs text-gray-500 mt-1">Calculado: ${calculatedPrice.toFixed(2)}. Puede modificarlo para aplicar descuentos.</p>
-        </div>
-      )}
-      <div>
-        <label className={labelClass + " mb-2"}>Método de Pago</label>
-        <select name="paymentMethod" value={guest.paymentMethod} onChange={handleChange} className={inputClass}>
-          {Object.values(PaymentMethod).map(method => <option key={method} value={method}>{method}</option>)}
-        </select>
-      </div>
       <div className="flex items-center">
         <input id="invoiceRequested" name="invoiceRequested" type="checkbox" checked={guest.invoiceRequested} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
         <label htmlFor="invoiceRequested" className="ml-2 block text-sm text-gray-700">¿El huésped requiere factura?</label>

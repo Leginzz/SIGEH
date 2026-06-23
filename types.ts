@@ -12,6 +12,11 @@ export enum PaymentMethod {
   Transfer = 'Transferencia',
 }
 
+export interface PaymentEntry {
+  method: PaymentMethod;
+  amount: number;
+}
+
 export enum IdentificationType {
     INE = 'INE',
     License = 'Licencia de Conducir',
@@ -33,8 +38,9 @@ export interface Guest {
   numberOfTowels: number;
   notes?: string;
   totalAgreedPrice: number;
+  payments?: PaymentEntry[];
   amountPaidAtCheckIn?: number;
-  paymentMethod: PaymentMethod;
+  paymentMethod?: PaymentMethod;
   invoiceRequested: boolean;
   depositAmount?: number;
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Room, BookingRecord, Guest, DailyReport, CashTransaction, CashRegister, CashMovement, CashClosing } from '../types';
+import type { Room, BookingRecord, Guest, DailyReport, CashTransaction, CashRegister, CashMovement, CashClosing, PaymentEntry } from '../types';
 import { RoomStatus, PaymentMethod, IdentificationType } from '../types';
 import { BASE_PRICE_PER_NIGHT } from '../constants';
 
@@ -300,24 +300,29 @@ export function useHotelData() {
           });
 
           const now = new Date();
-          const paidNow = guestDetails.amountPaidAtCheckIn ?? guestDetails.totalAgreedPrice;
+          const paymentsToRecord = guestDetails.payments && guestDetails.payments.length > 0
+              ? guestDetails.payments
+              : (guestDetails.amountPaidAtCheckIn ?? 0) > 0
+                  ? [{ method: guestDetails.paymentMethod || PaymentMethod.Cash, amount: guestDetails.amountPaidAtCheckIn! }]
+                  : [];
+
           let newCashTransactions = prevData.cashTransactions;
-          if (paidNow > 0) {
+          paymentsToRecord.forEach(p => {
               const newTransaction: CashTransaction = {
-                  id: `${Date.now()}-ci`,
+                  id: `${Date.now()}-ci-${Math.random().toString(36).slice(2, 8)}`,
                   date: now.toISOString().split('T')[0],
                   time: now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false }),
                   type: 'income',
-                  amount: paidNow,
+                  amount: p.amount,
                   description: `Check-In Hab. ${roomId} (${guestDetails.name})`,
                   origin: 'checkin',
                   roomId,
                   guestName: guestDetails.name,
-                  paymentMethod: guestDetails.paymentMethod,
+                  paymentMethod: p.method,
                   registerSessionId: prevData.cashRegister.isOpen ? prevData.cashRegister.sessionId : undefined,
               };
-              newCashTransactions = [newTransaction, ...prevData.cashTransactions];
-          }
+              newCashTransactions = [newTransaction, ...newCashTransactions];
+          });
 
           return { ...prevData, rooms, cashTransactions: newCashTransactions };
       });
@@ -345,25 +350,30 @@ export function useHotelData() {
           });
 
           const now = new Date();
-          const paidNow = (guestDetails?.amountPaidAtCheckIn ?? guestDetails?.totalAgreedPrice ?? 0);
+          const paymentsToRecord = guestDetails?.payments && guestDetails.payments.length > 0
+              ? guestDetails.payments
+              : (guestDetails?.amountPaidAtCheckIn ?? 0) > 0
+                  ? [{ method: guestDetails!.paymentMethod || PaymentMethod.Cash, amount: guestDetails!.amountPaidAtCheckIn! }]
+                  : [];
+
           let newCashTransactions = prevData.cashTransactions;
-          if (paidNow > 0) {
+          paymentsToRecord.forEach(p => {
               const newTransaction: CashTransaction = {
-                  id: `${Date.now()}-ci`,
+                  id: `${Date.now()}-ci-${Math.random().toString(36).slice(2, 8)}`,
                   date: now.toISOString().split('T')[0],
                   time: now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false }),
                   type: 'income',
-                  amount: paidNow,
+                  amount: p.amount,
                   description: `Check-In Hab. ${roomId} (${guestDetails!.name})`,
                   origin: 'checkin',
                   roomId,
                   guestName: guestDetails!.name,
-                  paymentMethod: guestDetails!.paymentMethod,
+                  paymentMethod: p.method,
                   reservationId: guestDetails!.id,
                   registerSessionId: prevData.cashRegister.isOpen ? prevData.cashRegister.sessionId : undefined,
               };
-              newCashTransactions = [newTransaction, ...prevData.cashTransactions];
-          }
+              newCashTransactions = [newTransaction, ...newCashTransactions];
+          });
 
           return { ...prevData, rooms, cashTransactions: newCashTransactions };
       });
@@ -371,7 +381,7 @@ export function useHotelData() {
 
   const checkOutAndRecordBooking = useCallback((
     roomToCheckOut: Room,
-    amountCollected: number = 0
+    checkoutPayments: PaymentEntry[] = []
   ) => {
     if (!roomToCheckOut.guest) return;
 
@@ -384,6 +394,10 @@ export function useHotelData() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const numberOfNights = Math.max(1, diffDays);
 
+    const totalCollected = checkoutPayments.reduce((s, p) => s + p.amount, 0);
+    const checkInTotal = guest.payments ? guest.payments.reduce((s, p) => s + p.amount, 0) : (guest.amountPaidAtCheckIn ?? 0);
+    const paymentMethods = [...new Set([...(guest.payments || []).map(p => p.method), ...checkoutPayments.map(p => p.method)])];
+
     const newBookingRecord: BookingRecord = {
       id: `${Date.now()}-${roomId}`,
       roomId,
@@ -392,7 +406,7 @@ export function useHotelData() {
       checkOutDate: finalCheckOutDate.toISOString().split('T')[0],
       numberOfNights,
       totalIncome: guest.totalAgreedPrice,
-      paymentMethod: guest.paymentMethod,
+      paymentMethod: paymentMethods[0] || guest.paymentMethod || PaymentMethod.Cash,
       invoiceRequested: guest.invoiceRequested,
     };
     
@@ -403,26 +417,24 @@ export function useHotelData() {
 
     setHotelData(prevData => {
       let updatedTransactions = prevData.cashTransactions;
-      if (amountCollected > 0) {
+      checkoutPayments.forEach(p => {
         const checkoutTransaction: CashTransaction = {
-          id: `${Date.now()}-co`,
+          id: `${Date.now()}-co-${Math.random().toString(36).slice(2, 8)}`,
           date: now.toISOString().split('T')[0],
           time: now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false }),
           type: 'income',
-          amount: amountCollected,
-          description: amountCollected >= guest.totalAgreedPrice - (guest.amountPaidAtCheckIn ?? 0)
-            ? `Check-Out Hab. ${roomId} (${guest.name}) - ${numberOfNights} noches`
-            : `Pago parcial Check-Out Hab. ${roomId} (${guest.name}) - $${amountCollected}`,
+          amount: p.amount,
+          description: `Check-Out Hab. ${roomId} (${guest.name}) - ${numberOfNights} noches`,
           origin: 'checkout',
           roomId,
           guestName: guest.name,
-          paymentMethod: guest.paymentMethod,
+          paymentMethod: p.method,
           registerSessionId: prevData.cashRegister.isOpen ? prevData.cashRegister.sessionId : undefined,
           numberOfNights,
           checkInDate: guest.checkInDate,
         };
-        updatedTransactions = [checkoutTransaction, ...prevData.cashTransactions];
-      }
+        updatedTransactions = [checkoutTransaction, ...updatedTransactions];
+      });
       return {
         ...prevData,
         rooms: prevData.rooms.map(room => (room.id === updatedRoom.id ? updatedRoom : room)),

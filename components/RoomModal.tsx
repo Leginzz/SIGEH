@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Room, Guest } from '../types';
+import type { Room, Guest, PaymentEntry } from '../types';
 import { RoomStatus } from '../types';
 import CheckInForm from './CheckInForm';
 import CheckOutForm from './CheckOutForm';
@@ -9,7 +9,7 @@ interface RoomModalProps {
   room: Room;
   onClose: () => void;
   onUpdateRoom: (room: Room) => void;
-  onCheckOutAndRecord: (room: Room, amountCollected: number) => void;
+  onCheckOutAndRecord: (room: Room, payments: PaymentEntry[]) => void;
   onDeleteRoom: (roomId: number) => void;
   onAddReservation: (roomId: number, guest: Guest) => void;
   onCancelReservation: (roomId: number, reservationId: string) => void;
@@ -93,7 +93,7 @@ const RoomModal: React.FC<RoomModalProps> = (props) => {
     }
 
     if (modalView === 'checkout') {
-      return <CheckOutForm room={room} onConfirm={(amount) => handleAction(onCheckOutAndRecord, room, amount)} onCancel={() => setModalView('main')} />;
+      return <CheckOutForm room={room} onConfirm={(payments) => handleAction(onCheckOutAndRecord, room, payments)} onCancel={() => setModalView('main')} />;
     }
 
     switch (room.status) {
@@ -178,17 +178,33 @@ const RoomModal: React.FC<RoomModalProps> = (props) => {
                 <span className="text-gray-600">Total estancia</span>
                 <span className="font-semibold text-gray-900">${room.guest.totalAgreedPrice.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Pagado en check-in</span>
-                <span className="font-medium text-emerald-600">-${(room.guest.amountPaidAtCheckIn ?? room.guest.totalAgreedPrice).toFixed(2)}</span>
-              </div>
-              {room.guest.amountPaidAtCheckIn != null && room.guest.amountPaidAtCheckIn < room.guest.totalAgreedPrice && (
+              {room.guest.payments && room.guest.payments.length > 0 ? (
+                <div className="space-y-0.5">
+                  {room.guest.payments.map((p, i) => (
+                    <div key={i} className="flex justify-between text-xs ml-2">
+                      <span className="text-gray-500">{p.method}</span>
+                      <span className="font-medium text-emerald-600">-${p.amount.toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Saldo pendiente</span>
-                  <span className="font-bold text-red-600">${(room.guest.totalAgreedPrice - room.guest.amountPaidAtCheckIn).toFixed(2)}</span>
+                  <span className="text-gray-600">Pagado en check-in</span>
+                  <span className="font-medium text-emerald-600">-${(room.guest.amountPaidAtCheckIn ?? room.guest.totalAgreedPrice).toFixed(2)}</span>
                 </div>
               )}
-              <div className="text-sm text-gray-400 text-right mt-1">Pagado con {room.guest.paymentMethod}</div>
+              {(() => {
+                const paidTotal = room.guest.payments?.reduce((s, p) => s + p.amount, 0) ?? room.guest.amountPaidAtCheckIn ?? room.guest.totalAgreedPrice;
+                return paidTotal < room.guest.totalAgreedPrice && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Saldo pendiente</span>
+                    <span className="font-bold text-red-600">${(room.guest.totalAgreedPrice - paidTotal).toFixed(2)}</span>
+                  </div>
+                );
+              })()}
+              {room.guest.paymentMethod && !room.guest.payments && (
+                <div className="text-sm text-gray-400 text-right mt-1">Pagado con {room.guest.paymentMethod}</div>
+              )}
             </div>
             <button onClick={() => setModalView('checkout')} className="mt-6 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">
               Registrar Salida
