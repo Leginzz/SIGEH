@@ -74,6 +74,7 @@ export interface CashTransaction {
     guestName?: string;
     reservationId?: string;
     paymentMethod?: PaymentMethod;
+    registerSessionId?: string;
 }
 
 export interface DailyReport {
@@ -121,6 +122,7 @@ export interface CashClosing {
 
 export interface CashRegister {
   isOpen: boolean;
+  sessionId?: string;
   openingDate: string;
   openingTime: string;
   initialAmount: number;

@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import type { Room, BookingRecord, CashTransaction, DailyReport } from '../types';
+import { useMemo, useState, useCallback } from 'react';
+import type { Room, BookingRecord, CashTransaction, CashRegister, CashClosing } from '../types';
 import { PaymentMethod } from '../types';
 
 export interface CashKpis {
@@ -9,27 +9,28 @@ export interface CashKpis {
   incomeCard: number;
   incomeTransfer: number;
   currentFund: number;
+  totalIncomeTx: number;
   totalExpenses: number;
-  totalWithdrawals: number;
   expectedBalance: number;
-  pendingCheckouts: number;
   occupiedRooms: number;
   occupiedIncome: number;
-  transactionsToday: CashTransaction[];
-  transactionsMonth: CashTransaction[];
+  sessionTransactions: CashTransaction[];
+  todayTransactions: CashTransaction[];
+  monthTransactions: CashTransaction[];
   recentBookings: BookingRecord[];
 }
 
-export function useCashControl(
+export function useCash(
   rooms: Room[],
   bookingHistory: BookingRecord[],
   cashTransactions: CashTransaction[],
-  dailyReports: DailyReport[]
+  cashRegister: CashRegister
 ): CashKpis {
   return useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
 
     const todayIncome = bookingHistory
       .filter(b => b.checkOutDate === today)
@@ -54,31 +55,35 @@ export function useCashControl(
       .filter(b => b.paymentMethod === PaymentMethod.Transfer)
       .reduce((s, b) => s + b.totalIncome, 0);
 
-    const currentPeriodTx = cashTransactions.filter(t => !t.reportId);
-    const totalExpenses = currentPeriodTx
-      .filter(t => t.type === 'expense')
-      .reduce((s, t) => s + t.amount, 0);
-    const totalWithdrawals = 0;
-    const initialFund = currentPeriodTx
+    const unreported = cashTransactions.filter(t => !t.reportId);
+    const currentFund = unreported
       .filter(t => t.type === 'initial')
       .reduce((s, t) => s + t.amount, 0);
-    const totalIncomeTx = currentPeriodTx
+    const totalIncomeTx = unreported
       .filter(t => t.type === 'income')
       .reduce((s, t) => s + t.amount, 0);
-    const expectedBalance = initialFund + totalIncomeTx - totalExpenses;
+    const totalExpenses = unreported
+      .filter(t => t.type === 'expense')
+      .reduce((s, t) => s + t.amount, 0);
+    const expectedBalance = currentFund + totalIncomeTx - totalExpenses;
 
     const occupiedRooms = rooms.filter(r => r.status === 'Ocupada' || r.status === 'Ocupado');
     const occupiedIncome = occupiedRooms.reduce((s, r) => s + (r.guest?.totalAgreedPrice || 0), 0);
-    const pendingCheckouts = occupiedRooms.length;
 
-    const transactionsToday = cashTransactions.filter(t => {
-      const txDate = t.date || t.date;
-      return txDate.startsWith(today);
+    const sessionTransactions = cashRegister.isOpen && cashRegister.sessionId
+      ? cashTransactions.filter(t => t.registerSessionId === cashRegister.sessionId)
+      : [];
+
+    const todayTransactions = cashTransactions.filter(t => {
+      const d = t.date || '';
+      return d.startsWith(today);
     });
-    const transactionsMonth = cashTransactions.filter(t => {
+
+    const monthTransactions = cashTransactions.filter(t => {
       const d = new Date(t.date);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
+
     const recentBookings = bookingHistory.slice(0, 20);
 
     return {
@@ -87,16 +92,16 @@ export function useCashControl(
       incomeCash,
       incomeCard,
       incomeTransfer,
-      currentFund: initialFund,
+      currentFund,
+      totalIncomeTx,
       totalExpenses,
-      totalWithdrawals,
       expectedBalance,
-      pendingCheckouts,
       occupiedRooms: occupiedRooms.length,
       occupiedIncome,
-      transactionsToday,
-      transactionsMonth,
+      sessionTransactions,
+      todayTransactions,
+      monthTransactions,
       recentBookings,
     };
-  }, [rooms, bookingHistory, cashTransactions, dailyReports]);
+  }, [rooms, bookingHistory, cashTransactions, cashRegister]);
 }
