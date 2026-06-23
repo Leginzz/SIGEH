@@ -1,5 +1,5 @@
-import { useMemo, useState, useCallback } from 'react';
-import type { Room, BookingRecord, CashTransaction, CashRegister, CashClosing } from '../types';
+import { useMemo } from 'react';
+import type { Room, CashTransaction, CashRegister } from '../types';
 import { PaymentMethod } from '../types';
 
 export interface CashKpis {
@@ -17,12 +17,12 @@ export interface CashKpis {
   sessionTransactions: CashTransaction[];
   todayTransactions: CashTransaction[];
   monthTransactions: CashTransaction[];
-  recentBookings: BookingRecord[];
+  recentCheckouts: CashTransaction[];
 }
 
 export function useCash(
   rooms: Room[],
-  bookingHistory: BookingRecord[],
+  _bookingHistory: never[],
   cashTransactions: CashTransaction[],
   cashRegister: CashRegister
 ): CashKpis {
@@ -32,28 +32,30 @@ export function useCash(
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    const todayIncome = bookingHistory
-      .filter(b => b.checkOutDate === today)
-      .reduce((s, b) => s + b.totalIncome, 0);
+    const incomeTxns = cashTransactions.filter(t => t.type === 'income');
 
-    const monthIncome = bookingHistory
-      .filter(b => {
-        const d = new Date(b.checkOutDate);
+    const todayIncome = incomeTxns
+      .filter(t => t.date === today)
+      .reduce((s, t) => s + t.amount, 0);
+
+    const monthIncome = incomeTxns
+      .filter(t => {
+        const d = new Date(t.date);
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
       })
-      .reduce((s, b) => s + b.totalIncome, 0);
+      .reduce((s, t) => s + t.amount, 0);
 
-    const incomeCash = bookingHistory
-      .filter(b => b.paymentMethod === PaymentMethod.Cash)
-      .reduce((s, b) => s + b.totalIncome, 0);
+    const incomeCash = incomeTxns
+      .filter(t => t.paymentMethod === PaymentMethod.Cash)
+      .reduce((s, t) => s + t.amount, 0);
 
-    const incomeCard = bookingHistory
-      .filter(b => b.paymentMethod === PaymentMethod.Card)
-      .reduce((s, b) => s + b.totalIncome, 0);
+    const incomeCard = incomeTxns
+      .filter(t => t.paymentMethod === PaymentMethod.Card)
+      .reduce((s, t) => s + t.amount, 0);
 
-    const incomeTransfer = bookingHistory
-      .filter(b => b.paymentMethod === PaymentMethod.Transfer)
-      .reduce((s, b) => s + b.totalIncome, 0);
+    const incomeTransfer = incomeTxns
+      .filter(t => t.paymentMethod === PaymentMethod.Transfer)
+      .reduce((s, t) => s + t.amount, 0);
 
     const unreported = cashTransactions.filter(t => !t.reportId);
     const currentFund = unreported
@@ -84,7 +86,9 @@ export function useCash(
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
 
-    const recentBookings = bookingHistory.slice(0, 20);
+    const recentCheckouts = cashTransactions
+      .filter(t => t.origin === 'checkout')
+      .slice(0, 20);
 
     return {
       todayIncome,
@@ -101,7 +105,7 @@ export function useCash(
       sessionTransactions,
       todayTransactions,
       monthTransactions,
-      recentBookings,
+      recentCheckouts,
     };
-  }, [rooms, bookingHistory, cashTransactions, cashRegister]);
+  }, [rooms, cashTransactions, cashRegister]);
 }

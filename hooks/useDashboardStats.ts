@@ -39,7 +39,7 @@ export interface ActivityItem {
 
 export function useDashboardStats(
   rooms: Room[],
-  bookingHistory: BookingRecord[],
+  _bookingHistory: BookingRecord[],
   cashTransactions: CashTransaction[],
   dailyReports: DailyReport[]
 ) {
@@ -52,21 +52,26 @@ export function useDashboardStats(
     const occupiedCount = rooms.filter(r => r.status === RoomStatus.Occupied).length;
     const cleaningCount = rooms.filter(r => r.status === RoomStatus.Cleaning).length;
 
+    const incomeTxns = cashTransactions.filter(t => t.type === 'income');
+    const checkoutTxns = cashTransactions.filter(t => t.origin === 'checkout');
+
+    const monthIncomeTxns = incomeTxns.filter(t => {
+      const d = new Date(t.date);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+
     const kpis: KpiData = {
       occupancy: rooms.length > 0 ? Math.round(((occupiedCount + cleaningCount) / rooms.length) * 100) : 0,
-      todayIncome: bookingHistory.filter(b => b.checkOutDate === today).reduce((s, b) => s + b.totalIncome, 0),
-      monthIncome: bookingHistory.filter(b => {
-        const d = new Date(b.checkOutDate);
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-      }).reduce((s, b) => s + b.totalIncome, 0),
+      todayIncome: incomeTxns.filter(t => t.date === today).reduce((s, t) => s + t.amount, 0),
+      monthIncome: monthIncomeTxns.reduce((s, t) => s + t.amount, 0),
       adr: 0,
       revpar: 0,
       checkInsToday: rooms.filter(r => r.guest?.checkInDate === today).length,
-      checkOutsToday: bookingHistory.filter(b => b.checkOutDate === today).length,
+      checkOutsToday: checkoutTxns.filter(t => t.date === today).length,
     };
 
-    const totalNights = bookingHistory.reduce((s, b) => s + b.numberOfNights, 0);
-    const totalRevenue = bookingHistory.reduce((s, b) => s + b.totalIncome, 0);
+    const totalNights = checkoutTxns.reduce((s, t) => s + (t.numberOfNights || 0), 0);
+    const totalRevenue = checkoutTxns.reduce((s, t) => s + t.amount, 0);
     kpis.adr = totalNights > 0 ? Math.round(totalRevenue / totalNights) : 0;
 
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -80,14 +85,9 @@ export function useDashboardStats(
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
       const dayLabel = dayLabels[d.getDay()];
-      const amount = bookingHistory.filter(b => b.checkOutDate === dateStr).reduce((s, b) => s + b.totalIncome, 0);
+      const amount = checkoutTxns.filter(t => t.date === dateStr).reduce((s, t) => s + t.amount, 0);
       revenueDays.push({ label: dayLabel, value: amount });
     }
-
-    const thisMonthBookings = bookingHistory.filter(b => {
-      const d = new Date(b.checkOutDate);
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-    });
 
     const paymentMethods: PaymentSegment[] = [
       { label: PaymentMethod.Cash, value: 0, color: '#10b981' },
@@ -95,9 +95,9 @@ export function useDashboardStats(
       { label: PaymentMethod.Transfer, value: 0, color: '#f59e0b' },
     ];
 
-    thisMonthBookings.forEach(b => {
-      const pm = paymentMethods.find(p => p.label === b.paymentMethod);
-      if (pm) pm.value += b.totalIncome;
+    monthIncomeTxns.forEach(t => {
+      const pm = paymentMethods.find(p => p.label === t.paymentMethod);
+      if (pm) pm.value += t.amount;
     });
 
     const statusCounts: OccupancyStatus[] = [
@@ -120,11 +120,11 @@ export function useDashboardStats(
       });
     });
 
-    bookingHistory.filter(b => b.checkOutDate === today).forEach(b => {
+    checkoutTxns.filter(t => t.date === today).forEach(t => {
       activities.push({
         time: today,
-        room: `#${b.roomId}`,
-        guest: b.guestName,
+        room: `#${t.roomId}`,
+        guest: t.guestName || '',
         action: 'Check-Out',
         type: 'checkout',
       });
@@ -155,5 +155,5 @@ export function useDashboardStats(
     const recentActivity = activities.slice(0, 15);
 
     return { kpis, revenueDays, paymentMethods, statusCounts, recentActivity };
-  }, [rooms, bookingHistory, cashTransactions, dailyReports]);
+  }, [rooms, cashTransactions, dailyReports]);
 }

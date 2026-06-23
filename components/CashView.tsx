@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { Room, BookingRecord, CashTransaction, CashRegister } from '../types';
+import type { Room, CashTransaction, CashRegister } from '../types';
 import { PaymentMethod } from '../types';
 import { useCash } from '../hooks/useCash';
 import { BarChart, DonutChart } from './charts';
@@ -8,7 +8,6 @@ import { CurrencyDollarIcon, BanknotesIcon, CalendarDaysIcon, BuildingOfficeIcon
 
 interface CashViewProps {
   rooms: Room[];
-  bookingHistory: BookingRecord[];
   cashTransactions: CashTransaction[];
   cashRegister: CashRegister;
   onOpenRegister: (initialAmount: number, user: string) => void;
@@ -39,10 +38,10 @@ const manualMovementTypes = [
 ] as const;
 
 const CashView: React.FC<CashViewProps> = ({
-  rooms, bookingHistory, cashTransactions, cashRegister,
+  rooms, cashTransactions, cashRegister,
   onOpenRegister, onAddCashTransaction, onCloseRegister,
 }) => {
-  const kpis = useCash(rooms, bookingHistory, cashTransactions, cashRegister);
+  const kpis = useCash(rooms, [], cashTransactions, cashRegister);
   const [tab, setTab] = useState<'dashboard' | 'history'>('dashboard');
   const [periodTab, setPeriodTab] = useState<'today' | 'month'>('today');
   const [showOpeningForm, setShowOpeningForm] = useState(false);
@@ -71,7 +70,9 @@ const CashView: React.FC<CashViewProps> = ({
     d.setDate(d.getDate() - (6 - i));
     const label = d.toLocaleDateString('es-MX', { weekday: 'short' });
     const dayStr = d.toISOString().split('T')[0];
-    const value = bookingHistory.filter(b => b.checkOutDate === dayStr).reduce((s, b) => s + b.totalIncome, 0);
+    const value = cashTransactions
+      .filter(t => t.type === 'income' && t.date === dayStr)
+      .reduce((s, t) => s + t.amount, 0);
     return { label, value };
   });
 
@@ -397,7 +398,7 @@ const CashView: React.FC<CashViewProps> = ({
             <div className="p-4 border-b border-gray-100">
               <h3 className="font-semibold text-gray-900">Últimos Check-Outs</h3>
             </div>
-            {kpis.recentBookings.length === 0 ? (
+            {kpis.recentCheckouts.length === 0 ? (
               <div className="p-8 text-center text-gray-400"><p className="text-sm">No hay check-outs registrados</p></div>
             ) : (
               <div className="overflow-x-auto">
@@ -413,18 +414,18 @@ const CashView: React.FC<CashViewProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {kpis.recentBookings.map(b => (
-                      <tr key={b.id} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-900">{b.roomId}</td>
-                        <td className="px-4 py-3 text-gray-700">{b.guestName}</td>
-                        <td className="px-4 py-3 text-gray-500">{b.checkOutDate}</td>
-                        <td className="px-4 py-3 text-gray-500">{b.numberOfNights}</td>
+                    {kpis.recentCheckouts.map(t => (
+                      <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50">
+                        <td className="px-4 py-3 font-medium text-gray-900">{t.roomId}</td>
+                        <td className="px-4 py-3 text-gray-700">{t.guestName}</td>
+                        <td className="px-4 py-3 text-gray-500">{t.date}</td>
+                        <td className="px-4 py-3 text-gray-500">{t.numberOfNights || '-'}</td>
                         <td className="px-4 py-3">
-                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${b.paymentMethod === PaymentMethod.Cash ? 'bg-emerald-50 text-emerald-700' : b.paymentMethod === PaymentMethod.Card ? 'bg-indigo-50 text-indigo-700' : 'bg-amber-50 text-amber-700'}`}>
-                            {b.paymentMethod}
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${t.paymentMethod === PaymentMethod.Cash ? 'bg-emerald-50 text-emerald-700' : t.paymentMethod === PaymentMethod.Card ? 'bg-indigo-50 text-indigo-700' : 'bg-amber-50 text-amber-700'}`}>
+                            {t.paymentMethod || '-'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right font-medium text-gray-900">${b.totalIncome.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right font-medium text-gray-900">${t.amount.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>

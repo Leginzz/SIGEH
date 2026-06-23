@@ -89,7 +89,6 @@ function App() {
         {activeView === 'cash' && (
           <CashView
             rooms={rooms}
-            bookingHistory={bookingHistory}
             cashTransactions={cashTransactions}
             cashRegister={cashRegister}
             onOpenRegister={openRegister}
