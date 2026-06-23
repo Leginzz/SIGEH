@@ -50,11 +50,9 @@ function App() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <aside className="w-64 bg-slate-900 text-white flex-shrink-0 min-h-screen flex flex-col">
-        <div className="p-5 border-b border-slate-700">
-          <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
-            SIGEH
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">Sistema de Gestión Hotelera</p>
+        <div className="p-5 border-b border-slate-700 flex flex-col items-center">
+          <img src="/logo.png" alt="SIGEH" className="h-12 w-auto" />
+          <p className="text-xs text-slate-400 mt-1">Sistema de Gestión Hotelera</p>
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {navItems.map(item => (
