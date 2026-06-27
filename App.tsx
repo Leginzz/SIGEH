@@ -5,7 +5,7 @@ import ReservationsView from './components/ReservationsView';
 import ReportsView from './components/ReportsView';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
 import CashView from './components/CashView';
-import OccupancyCalendarView from './components/OccupancyCalendarView';
+import { CalendarView } from './components/calendar/CalendarView';
 import { useHotelData } from './hooks/useHotelData';
 import { AuthProvider } from './auth/AuthProvider';
 import { useAuth } from './auth/useAuth';
@@ -177,7 +177,7 @@ function AppContent() {
         )}
         {activeView === 'calendar' && (
           <ProtectedRoute permission="calendario">
-            <OccupancyCalendarView rooms={rooms} />
+            <CalendarView rooms={rooms} onSelectRoom={handleSelectRoom} />
           </ProtectedRoute>
         )}
         {activeView === 'executive' && (
