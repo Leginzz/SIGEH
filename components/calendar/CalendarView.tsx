@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { Room } from '../../types';
 import { RoomStatus } from '../../types';
 import { useCalendarData, type DayInfo, type RoomRowData, type StayInterval, type KpiData } from './useCalendarData';
@@ -53,6 +53,8 @@ function CalendarKPI({ kpis }: { kpis: KpiData }) {
     { label: 'Disponibles', value: kpis.available, color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' },
     { label: 'Reservadas', value: kpis.reserved, color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200' },
     { label: 'Mantenimiento', value: kpis.maintenance, color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200' },
+    { label: 'Check-In Hoy', value: kpis.checkInsToday, color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-200' },
+    { label: 'Check-Out Hoy', value: kpis.checkOutsToday, color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200' },
     { label: 'Ocupación', value: `${kpis.occupancyRate}%`, color: 'text-indigo-700', bg: 'bg-indigo-50', border: 'border-indigo-200' },
   ];
   return (
@@ -267,9 +269,16 @@ export function CalendarView({ rooms, onSelectRoom }: CalendarViewProps) {
   const [baseDate, setBaseDate] = useState(() => getMonday(today));
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilters, setStatusFilters] = useState<Set<string>>(new Set());
+  const [floorFilter, setFloorFilter] = useState<number | null>(null);
+
+  const totalFloors = useMemo(() => {
+    let max = 0;
+    for (const r of rooms) { if (r.floor > max) max = r.floor; }
+    return max;
+  }, [rooms]);
 
   const { days, roomRows, kpis, periodLabel, totalColumns } = useCalendarData(
-    rooms, viewMode, baseDate, searchQuery, statusFilters,
+    rooms, viewMode, baseDate, searchQuery, statusFilters, floorFilter,
   );
 
   const handleNavigate = useCallback((dir: 'prev' | 'next' | 'today') => {
@@ -320,6 +329,9 @@ export function CalendarView({ rooms, onSelectRoom }: CalendarViewProps) {
         onSearchChange={setSearchQuery}
         statusFilters={statusFilters}
         onFilterToggle={toggleFilter}
+        floorFilter={floorFilter}
+        onFloorFilterChange={setFloorFilter}
+        totalFloors={totalFloors}
       />
       <CalendarGrid
         days={days}

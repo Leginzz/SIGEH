@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Room, BookingRecord, Guest, DailyReport, CashTransaction, CashRegister, CashMovement, CashClosing, PaymentEntry, DenominationCount } from '../types';
+import type { Room, RoomType, BookingRecord, Guest, DailyReport, CashTransaction, CashRegister, CashMovement, CashClosing, PaymentEntry, DenominationCount } from '../types';
 import { RoomStatus, PaymentMethod, denomTotal } from '../types';
 import { BASE_PRICE_PER_NIGHT } from '../constants';
 
@@ -13,18 +13,65 @@ interface HotelData {
   cashRegister: CashRegister;
 }
 
+function getRoomTypeFromId(id: number): RoomType {
+  const types: RoomType[] = ['individual', 'doble', 'suite', 'suite_premium'];
+  return types[(id - 1) % 4];
+}
+
+function getFloorFromId(id: number): number {
+  return Math.ceil(id / 4);
+}
+
+function getCapacityFromId(id: number): number {
+  const t = getRoomTypeFromId(id);
+  if (t === 'suite_premium') return 5;
+  if (t === 'suite') return 4;
+  if (t === 'doble') return 3;
+  return 2;
+}
+
+function getAmenitiesFromId(id: number): string[] {
+  const base = ['WiFi', 'TV'];
+  const t = getRoomTypeFromId(id);
+  if (t === 'suite_premium') return [...base, 'Aire acondicionado', 'Mini bar', 'Caja fuerte', 'Jacuzzi', 'Vista al mar'];
+  if (t === 'suite') return [...base, 'Aire acondicionado', 'Mini bar', 'Caja fuerte'];
+  if (t === 'doble') return [...base, 'Aire acondicionado'];
+  return base;
+}
+
+function migrateRoom(r: any): Room {
+  return {
+    ...r,
+    roomNumber: r.roomNumber ?? `10${r.id}`,
+    roomType: r.roomType ?? getRoomTypeFromId(r.id),
+    floor: r.floor ?? getFloorFromId(r.id),
+    capacity: r.capacity ?? getCapacityFromId(r.id),
+    amenities: r.amenities ?? getAmenitiesFromId(r.id),
+    description: r.description ?? '',
+    images: r.images ?? [],
+  };
+}
+
+function createDefaultRoom(id: number): Room {
+  return {
+    id,
+    roomNumber: `${getFloorFromId(id)}0${id}`,
+    roomType: getRoomTypeFromId(id),
+    floor: getFloorFromId(id),
+    capacity: getCapacityFromId(id),
+    pricePerNight: BASE_PRICE_PER_NIGHT + ((id - 1) % 4) * 10,
+    amenities: getAmenitiesFromId(id),
+    description: '',
+    images: [],
+    status: RoomStatus.Available,
+    guest: null,
+    reservations: [],
+  };
+}
+
 const initializeHotelData = (): HotelData => {
   const rooms: Room[] = [];
-  const initialRoomCount = 16;
-  for (let i = 1; i <= initialRoomCount; i++) {
-    rooms.push({
-      id: i,
-      status: RoomStatus.Available,
-      pricePerNight: BASE_PRICE_PER_NIGHT + ((i - 1) % 4) * 10,
-      guest: null,
-      reservations: [],
-    });
-  }
+  for (let i = 1; i <= 16; i++) rooms.push(createDefaultRoom(i));
   return { rooms, bookingHistory: [], dailyReports: [], cashTransactions: [], cashRegister: { isOpen: false, openingDate: '', openingTime: '', initialAmount: 0, user: '', movements: [], closings: [] } };
 };
 
@@ -39,6 +86,9 @@ export function useHotelData() {
         }
         if (!parsedData.cashRegister) {
           parsedData.cashRegister = { isOpen: false, openingDate: '', openingTime: '', initialAmount: 0, user: '', movements: [], closings: [] };
+        }
+        if (parsedData.rooms && parsedData.rooms.length > 0 && !parsedData.rooms[0].roomNumber) {
+          parsedData.rooms = parsedData.rooms.map(migrateRoom);
         }
         return parsedData;
       }
@@ -212,13 +262,7 @@ export function useHotelData() {
   const addRoom = useCallback(() => {
     setHotelData(prevData => {
       const newRoomId = prevData.rooms.length > 0 ? Math.max(...prevData.rooms.map(r => r.id)) + 1 : 1;
-      const newRoom: Room = {
-        id: newRoomId,
-        status: RoomStatus.Available,
-        pricePerNight: BASE_PRICE_PER_NIGHT,
-        guest: null,
-        reservations: [],
-      };
+      const newRoom = createDefaultRoom(newRoomId);
       return {
         ...prevData,
         rooms: [...prevData.rooms, newRoom],

@@ -6,6 +6,8 @@ export enum RoomStatus {
   Reserved = 'Reservada',
 }
 
+export type RoomType = 'individual' | 'doble' | 'suite' | 'suite_premium';
+
 export enum PaymentMethod {
   Cash = 'Efectivo',
   Card = 'Tarjeta',
@@ -47,8 +49,15 @@ export interface Guest {
 
 export interface Room {
   id: number;
-  status: RoomStatus;
+  roomNumber: string;
+  roomType: RoomType;
+  floor: number;
+  capacity: number;
   pricePerNight: number;
+  amenities: string[];
+  description?: string;
+  images?: string[];
+  status: RoomStatus;
   guest?: Guest | null;
   reservations: Guest[];
 }

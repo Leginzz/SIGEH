@@ -30,7 +30,7 @@ const OccupancyBars: React.FC<OccupancyBarsProps> = ({ rooms }) => {
       <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
         {sorted.map(room => (
           <div key={room.id} className="flex flex-col items-center">
-            <div className="text-xs font-bold text-gray-400 mb-1">#{room.id}</div>
+            <div className="text-xs font-bold text-gray-400 mb-1">{room.roomNumber}</div>
             <div
               className="w-full rounded-lg transition-all duration-300"
               style={{
@@ -38,7 +38,7 @@ const OccupancyBars: React.FC<OccupancyBarsProps> = ({ rooms }) => {
                 height: room.status === RoomStatus.Occupied ? '48px' : room.status === RoomStatus.Reserved ? '36px' : '24px',
                 opacity: room.status === RoomStatus.Available ? 0.5 : 1,
               }}
-              title={`Habitación ${room.id}: ${room.status}`}
+              title={`Habitación ${room.roomNumber}: ${room.status}`}
             />
             <div className="text-[10px] text-gray-400 mt-0.5">{statusLabel[room.status] || room.status}</div>
           </div>

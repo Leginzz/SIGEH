@@ -1,71 +1,38 @@
 import React from 'react';
 import type { Room } from '../types';
+import { RoomTopBar } from './rooms/RoomStatusBadge';
+import { RoomHeader } from './rooms/RoomHeader';
+import { RoomQuickInfo } from './rooms/RoomQuickInfo';
+import { RoomActions } from './rooms/RoomActions';
 import { RoomStatus } from '../types';
-import { BedIcon, DoorOpenIcon, SparklesIcon, WrenchIcon, UserGroupIcon, BookmarkSquareIcon } from './icons/Icons';
 
 interface RoomCardProps {
   room: Room;
   onSelectRoom: (room: Room) => void;
 }
 
-const statusConfig = {
-  [RoomStatus.Available]: {
-    bg: 'bg-green-50 border-green-200',
-    textColor: 'text-green-600',
-    icon: <DoorOpenIcon className="w-8 h-8" />,
-    hover: 'hover:border-green-400 hover:shadow-green-200',
-  },
-  [RoomStatus.Occupied]: {
-    bg: 'bg-red-50 border-red-200',
-    textColor: 'text-red-600',
-    icon: <BedIcon className="w-8 h-8" />,
-    hover: 'hover:border-red-400 hover:shadow-red-200',
-  },
-  [RoomStatus.Cleaning]: {
-    bg: 'bg-yellow-50 border-yellow-200',
-    textColor: 'text-yellow-600',
-    icon: <SparklesIcon className="w-8 h-8" />,
-    hover: 'hover:border-yellow-400 hover:shadow-yellow-200',
-  },
-  [RoomStatus.Maintenance]: {
-    bg: 'bg-blue-50 border-blue-200',
-    textColor: 'text-blue-600',
-    icon: <WrenchIcon className="w-8 h-8" />,
-    hover: 'hover:border-blue-400 hover:shadow-blue-200',
-  },
-  [RoomStatus.Reserved]: {
-    bg: 'bg-purple-50 border-purple-200',
-    textColor: 'text-purple-600',
-    icon: <BookmarkSquareIcon className="w-8 h-8" />,
-    hover: 'hover:border-purple-400 hover:shadow-purple-200',
-  },
+const BG_CLASSES: Record<string, string> = {
+  [RoomStatus.Available]: 'hover:border-emerald-300 hover:shadow-emerald-100',
+  [RoomStatus.Occupied]: 'hover:border-blue-300 hover:shadow-blue-100',
+  [RoomStatus.Reserved]: 'hover:border-amber-300 hover:shadow-amber-100',
+  [RoomStatus.Cleaning]: 'hover:border-gray-300 hover:shadow-gray-100',
+  [RoomStatus.Maintenance]: 'hover:border-red-300 hover:shadow-red-100',
 };
 
 const RoomCard: React.FC<RoomCardProps> = ({ room, onSelectRoom }) => {
-  const config = statusConfig[room.status];
-
   return (
     <div
       onClick={() => onSelectRoom(room)}
-      className={`relative p-4 rounded-lg border cursor-pointer transition-all duration-300 bg-white shadow-sm ${config.bg} ${config.hover} hover:shadow-md hover:scale-[1.03]`}
+      className={`bg-white rounded-xl border border-gray-200 shadow-sm transition-all duration-200 cursor-pointer overflow-hidden ${BG_CLASSES[room.status] || ''} hover:shadow-md`}
     >
-      <div className="flex flex-col items-center justify-center h-full aspect-square">
-        <div className={`mb-1 ${config.textColor}`}>{config.icon}</div>
-        <div className="text-2xl font-bold text-gray-800">{room.id}</div>
-        <div className={`text-xs font-semibold ${config.textColor}`}>{room.status}</div>
+      <RoomTopBar status={room.status} />
+      <div className="p-3 space-y-2.5">
+        <RoomHeader room={room} />
+        <RoomQuickInfo room={room} />
+        <div onClick={e => e.stopPropagation()}>
+          <RoomActions room={room} onAction={() => onSelectRoom(room)} />
+        </div>
       </div>
-      {room.status === RoomStatus.Occupied && room.guest && (
-        <div className="absolute bottom-2 right-2 flex items-center text-xs text-gray-500 bg-white/80 px-2 py-1 rounded-full shadow-sm">
-          <UserGroupIcon className="w-3 h-3 mr-1" />
-          <span>{room.guest.numberOfGuests}</span>
-        </div>
-      )}
-      {room.status === RoomStatus.Reserved && room.reservations.length > 0 && (
-        <div className="absolute bottom-2 right-2 flex items-center text-xs text-gray-500 bg-white/80 px-2 py-1 rounded-full shadow-sm">
-          <UserGroupIcon className="w-3 h-3 mr-1" />
-          <span>{room.reservations[0].numberOfGuests}</span>
-        </div>
-      )}
     </div>
   );
 };

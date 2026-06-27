@@ -11,6 +11,9 @@ interface CalendarToolbarProps {
   onSearchChange: (q: string) => void;
   statusFilters: Set<string>;
   onFilterToggle: (status: string) => void;
+  floorFilter: number | null;
+  onFloorFilterChange: (floor: number | null) => void;
+  totalFloors: number;
 }
 
 const FILTERS = [
@@ -32,6 +35,9 @@ export function CalendarToolbar({
   onSearchChange,
   statusFilters,
   onFilterToggle,
+  floorFilter,
+  onFloorFilterChange,
+  totalFloors,
 }: CalendarToolbarProps) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-3 space-y-3">
@@ -115,6 +121,22 @@ export function CalendarToolbar({
               </button>
             );
           })}
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 text-gray-400">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6h16.5M3.75 12h16.5M3.75 18h16.5" />
+          </svg>
+          <select
+            value={floorFilter ?? ''}
+            onChange={e => onFloorFilterChange(e.target.value ? Number(e.target.value) : null)}
+            className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 text-gray-600 bg-white hover:border-gray-400 transition-colors"
+          >
+            <option value="">Todos los pisos</option>
+            {Array.from({ length: totalFloors }, (_, i) => i + 1).map(f => (
+              <option key={f} value={f}>Piso {f}</option>
+            ))}
+          </select>
         </div>
       </div>
 

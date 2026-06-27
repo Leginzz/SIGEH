@@ -31,6 +31,8 @@ export interface KpiData {
   reserved: number;
   maintenance: number;
   occupancyRate: number;
+  checkInsToday: number;
+  checkOutsToday: number;
 }
 
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -93,6 +95,7 @@ export function useCalendarData(
   baseDate: Date,
   searchQuery: string,
   statusFilters: Set<string>,
+  floorFilter: number | null,
 ) {
   return useMemo(() => {
     const today = new Date();
@@ -129,7 +132,7 @@ export function useCalendarData(
     const todayInRange = days.some(d => d.isToday);
 
     let roomRows: RoomRowData[] = [];
-    const kpis: KpiData = { occupied: 0, available: 0, reserved: 0, maintenance: 0, occupancyRate: 0 };
+    const kpis: KpiData = { occupied: 0, available: 0, reserved: 0, maintenance: 0, occupancyRate: 0, checkInsToday: 0, checkOutsToday: 0 };
 
     for (const room of rooms) {
       const isUniform = room.status === RoomStatus.Maintenance || room.status === RoomStatus.Cleaning;
@@ -166,7 +169,7 @@ export function useCalendarData(
 
       roomRows.push({
         room,
-        label: `Hab. ${pad(room.id)}`,
+        label: room.roomNumber,
         isUniformStatus: isUniform,
         uniformStatus,
         intervals,
@@ -178,6 +181,11 @@ export function useCalendarData(
         else if (s === 'available') kpis.available++;
         else if (s === 'reserved') kpis.reserved++;
         else if (s === 'maintenance') kpis.maintenance++;
+
+        if (room.guest) {
+          if (room.guest.checkInDate === todayStr) kpis.checkInsToday++;
+          if (room.guest.checkOutDate === todayStr) kpis.checkOutsToday++;
+        }
       }
     }
 
@@ -199,6 +207,10 @@ export function useCalendarData(
       });
     }
 
+    if (floorFilter !== null) {
+      roomRows = roomRows.filter(r => r.room.floor === floorFilter);
+    }
+
     const weekStart = getMonday(baseDate);
     const weekEnd = addDays(weekStart, 6);
     const friendlyLabel = viewMode === 'week'
@@ -206,5 +218,5 @@ export function useCalendarData(
       : `${MONTH_NAMES[baseDate.getMonth()]} ${baseDate.getFullYear()}`;
 
     return { days, roomRows, kpis, periodLabel: friendlyLabel, totalColumns: days.length + 1 };
-  }, [rooms, viewMode, baseDate, searchQuery, Array.from(statusFilters).sort().join(',')]);
+  }, [rooms, viewMode, baseDate, searchQuery, Array.from(statusFilters).sort().join(','), floorFilter]);
 }
