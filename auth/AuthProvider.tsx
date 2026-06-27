@@ -31,17 +31,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const init = async () => {
-      await initUsers();
-      const savedSession = getSavedSession();
-      if (savedSession) {
-        const users = getUsersList();
-        const currentUser = users.find(u => u.id === savedSession.userId && u.activo);
-        if (currentUser) {
-          setUser(currentUser);
-          setSession(savedSession);
-        } else {
-          clearSession();
+      try {
+        await initUsers();
+        const savedSession = getSavedSession();
+        if (savedSession) {
+          const users = getUsersList();
+          const currentUser = users.find(u => u.id === savedSession.userId && u.activo);
+          if (currentUser) {
+            setUser(currentUser);
+            setSession(savedSession);
+          } else {
+            clearSession();
+          }
         }
+      } catch (e) {
+        console.error('AuthProvider.init error:', e);
       }
       setLoading(false);
     };
