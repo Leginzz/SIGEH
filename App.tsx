@@ -74,6 +74,17 @@ function AppContent() {
   const handleSelectRoom = (room: Room) => setSelectedRoom(room);
   const handleCloseModal = () => setSelectedRoom(null);
 
+  const permittedNavItems = useMemo(
+    () => navItems.filter(item => hasPermission(item.permission)),
+    [hasPermission]
+  );
+
+  useEffect(() => {
+    if (!permittedNavItems.find(n => n.view === activeView)) {
+      setActiveView(permittedNavItems[0]?.view || 'executive');
+    }
+  }, [permittedNavItems, activeView]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -85,17 +96,6 @@ function AppContent() {
   if (!user) {
     return <LoginScreen onLogin={login} />;
   }
-
-  const permittedNavItems = useMemo(
-    () => navItems.filter(item => hasPermission(item.permission)),
-    [hasPermission]
-  );
-
-  useEffect(() => {
-    if (!permittedNavItems.find(n => n.view === activeView)) {
-      setActiveView(permittedNavItems[0]?.view || 'executive');
-    }
-  }, [permittedNavItems, activeView]);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
