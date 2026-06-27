@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PaymentMethod } from '../types';
 import type { DailyReport } from '../types';
 import { XMarkIcon, CalendarIcon, CurrencyDollarIcon, BanknotesIcon, WalletIcon } from './icons/Icons';
 
@@ -29,9 +30,9 @@ const ReportModal: React.FC<{ report: DailyReport, onClose: () => void }> = ({ r
             </div>
             <hr className="border-gray-200 my-3" />
             <div className="space-y-2 text-sm text-gray-600">
-              <div className="flex justify-between"><span>Efectivo:</span> <span className="font-mono font-semibold">${report.breakdown.Efectivo.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span>Tarjeta:</span> <span className="font-mono font-semibold">${report.breakdown.Tarjeta.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span>Transferencia:</span> <span className="font-mono font-semibold">${report.breakdown.Transferencia.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span>Efectivo:</span> <span className="font-mono font-semibold">${report.breakdown[PaymentMethod.Cash].toFixed(2)}</span></div>
+              <div className="flex justify-between"><span>Tarjeta:</span> <span className="font-mono font-semibold">${report.breakdown[PaymentMethod.Card].toFixed(2)}</span></div>
+              <div className="flex justify-between"><span>Transferencia:</span> <span className="font-mono font-semibold">${report.breakdown[PaymentMethod.Transfer].toFixed(2)}</span></div>
             </div>
           </div>
 

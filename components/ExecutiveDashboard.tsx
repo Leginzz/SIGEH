@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Room, CashTransaction, DailyReport } from '../types';
+import { RoomStatus } from '../types';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import KpiCard from './KpiCard';
 import BarChart from './charts/BarChart';
@@ -27,7 +28,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = (props) => {
         <KpiCard
           title="Ocupación"
           value={`${kpis.occupancy}%`}
-          subtitle={`${props.rooms.filter(r => r.status === 'Ocupada' || r.status === 'En Limpieza').length}/${props.rooms.length} habitaciones`}
+          subtitle={`${props.rooms.filter(r => r.status === RoomStatus.Occupied || r.status === RoomStatus.Cleaning).length}/${props.rooms.length} habitaciones`}
           icon={<BuildingOfficeIcon className="w-5 h-5" />}
           color="blue"
         />

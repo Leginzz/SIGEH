@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import type { Room, CashTransaction, CashRegister, CashClosing, DenominationCount } from '../types';
-import { PaymentMethod, DEFAULT_DENOMINATIONS, DENOMINATION_VALUES, denomTotal } from '../types';
+import { RoomStatus, PaymentMethod, DEFAULT_DENOMINATIONS, DENOMINATION_VALUES, denomTotal } from '../types';
 import { useCash } from '../hooks/useCash';
 import { BarChart, DonutChart } from './charts';
 import KpiCard from './KpiCard';
@@ -59,7 +59,7 @@ function formatDuration(startDate: string, startTime: string, endDate: string, e
 
 function buildDenomFromCounted(counted: number): DenominationCount {
   const d = { ...DEFAULT_DENOMINATIONS };
-  let remaining = Math.round(counted * 100);
+  let remaining = Math.round(counted * 100 + 1e-9);
   d.bill1000 = Math.floor(remaining / 100000);
   remaining %= 100000;
   d.bill500 = Math.floor(remaining / 50000);
@@ -71,8 +71,6 @@ function buildDenomFromCounted(counted: number): DenominationCount {
   d.bill50 = Math.floor(remaining / 5000);
   remaining %= 5000;
   d.bill20 = Math.floor(remaining / 2000);
-  remaining %= 2000;
-  d.coin20 = Math.floor(remaining / 2000);
   remaining %= 2000;
   d.coin10 = Math.floor(remaining / 1000);
   remaining %= 1000;
@@ -618,7 +616,7 @@ const ClosingDetailView: React.FC<{
     ? cashTransactions.filter(t => t.registerSessionId === closing.registerSessionId)
     : [];
 
-  const paymentBreakdown = useMemo(() => {
+  const paymentBreakdown: Record<string, number> = useMemo(() => {
     const breakdown: Record<string, number> = {};
     sessionTxs.filter(t => t.type === 'income' && t.paymentMethod).forEach(t => {
       const m = t.paymentMethod!;
@@ -630,8 +628,8 @@ const ClosingDetailView: React.FC<{
   const checkins = sessionTxs.filter(t => t.origin === 'checkin').length;
   const checkouts = sessionTxs.filter(t => t.origin === 'checkout').length;
   const reservations = sessionTxs.filter(t => t.origin === 'reservation').length;
-  const occupiedCount = rooms.filter(r => r.status === 'Ocupada' || r.status === 'Ocupado').length;
-  const availableCount = rooms.filter(r => r.status === 'Disponible').length;
+  const occupiedCount = rooms.filter(r => r.status === RoomStatus.Occupied).length;
+  const availableCount = rooms.filter(r => r.status === RoomStatus.Available).length;
 
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');

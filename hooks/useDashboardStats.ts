@@ -84,7 +84,7 @@ export function useDashboardStats(
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
       const dayLabel = dayLabels[d.getDay()];
-      const amount = checkoutTxns.filter(t => t.date === dateStr).reduce((s, t) => s + t.amount, 0);
+      const amount = incomeTxns.filter(t => t.date === dateStr).reduce((s, t) => s + t.amount, 0);
       revenueDays.push({ label: dayLabel, value: amount });
     }
 

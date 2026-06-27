@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Room, BookingRecord, Guest, DailyReport, CashTransaction, CashRegister, CashMovement, CashClosing, PaymentEntry, DenominationCount } from '../types';
-import { RoomStatus, PaymentMethod, IdentificationType, denomTotal } from '../types';
+import { RoomStatus, PaymentMethod, denomTotal } from '../types';
 import { BASE_PRICE_PER_NIGHT } from '../constants';
 
 const LOCAL_STORAGE_KEY = 'hotelManagementData_v5';
@@ -44,6 +44,7 @@ export function useHotelData() {
       }
     } catch (error) {
       console.error("Error reading from localStorage", error);
+      window.alert("Error al leer datos guardados. Se inicializarán datos nuevos.");
     }
     return initializeHotelData();
   });
@@ -53,6 +54,7 @@ export function useHotelData() {
       window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(hotelData));
     } catch (error) {
       console.error("Error writing to localStorage", error);
+      window.alert("Error al guardar datos en el navegador. Verifique el espacio de almacenamiento.");
     }
   }, [hotelData]);
   
@@ -145,8 +147,12 @@ export function useHotelData() {
       let totalIncome = 0, totalDiverseIncome = 0, totalExpenses = 0, totalWithdrawals = 0, totalAdjustments = 0;
 
       if (hasSessionData && reg.sessionId) {
-        totalIncome = sessionTxs.filter(t => t.type === 'income' && t.origin !== 'reservation').reduce((s, t) => s + t.amount, 0);
+        totalIncome = sessionTxs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
         totalExpenses = sessionTxs.filter(t => t.type === 'expense').reduce((s, t) => s + Math.abs(t.amount), 0);
+        totalWithdrawals = sessionTxs.filter(t => t.type === 'expense' && t.description.startsWith('Retiro:')).reduce((s, t) => s + Math.abs(t.amount), 0);
+        totalAdjustments = sessionTxs.filter(t => t.type === 'income' && t.description.startsWith('Ajuste:')).reduce((s, t) => s + t.amount, 0);
+        totalIncome -= totalAdjustments;
+        totalExpenses -= totalWithdrawals;
       } else {
         totalIncome = reg.movements.filter(m => m.type === 'income').reduce((s, m) => s + m.amount, 0);
         totalDiverseIncome = reg.movements.filter(m => m.type === 'diverse_income').reduce((s, m) => s + m.amount, 0);
@@ -448,50 +454,5 @@ export function useHotelData() {
 
   }, []);
 
-  const generateDailyReport = useCallback(() => {
-    setHotelData(prevData => {
-      const bookingsToReport = prevData.bookingHistory.filter(b => !b.reportId);
-      const cashTransactionsToReport = prevData.cashTransactions.filter(t => !t.reportId);
-
-      if (bookingsToReport.length === 0 && cashTransactionsToReport.length === 0) return prevData;
-
-      const reportId = new Date().toISOString();
-      const totalIncome = bookingsToReport.reduce((sum, b) => sum + b.totalIncome, 0);
-      
-      const breakdown = bookingsToReport.reduce((acc, b) => {
-          acc[b.paymentMethod] = (acc[b.paymentMethod] || 0) + b.totalIncome;
-          return acc;
-      }, {
-          [PaymentMethod.Cash]: 0,
-          [PaymentMethod.Card]: 0,
-          [PaymentMethod.Transfer]: 0,
-      });
-
-      const newReport: DailyReport = {
-        id: reportId,
-        date: new Date().toISOString().split('T')[0],
-        totalIncome,
-        bookingsIncluded: bookingsToReport,
-        cashTransactionsIncluded: cashTransactionsToReport,
-        breakdown,
-      };
-
-      const updatedBookingHistory = prevData.bookingHistory.map(b => 
-        !b.reportId ? { ...b, reportId } : b
-      );
-
-      const updatedCashTransactions = prevData.cashTransactions.map(t =>
-        !t.reportId ? { ...t, reportId } : t
-      );
-
-      return {
-        ...prevData,
-        bookingHistory: updatedBookingHistory,
-        cashTransactions: updatedCashTransactions,
-        dailyReports: [newReport, ...prevData.dailyReports],
-      };
-    });
-  }, []);
-
-  return { ...hotelData, updateRoom, checkOutAndRecordBooking, addRoom, deleteRoom, addReservation, cancelReservation, checkIn, checkInFromReservation, generateDailyReport, addCashTransaction, openRegister, addCashMovement, closeRegisterWithArqueo };
+  return { ...hotelData, updateRoom, checkOutAndRecordBooking, addRoom, deleteRoom, addReservation, cancelReservation, checkIn, checkInFromReservation, addCashTransaction, openRegister, addCashMovement, closeRegisterWithArqueo };
 }

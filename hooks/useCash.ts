@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Room, CashTransaction, CashRegister } from '../types';
-import { PaymentMethod } from '../types';
+import { PaymentMethod, RoomStatus } from '../types';
 
 export interface CashKpis {
   todayIncome: number;
@@ -68,7 +68,7 @@ export function useCash(
       .reduce((s, t) => s + t.amount, 0);
     const expectedBalance = currentFund + totalIncomeTx - totalExpenses;
 
-    const occupiedRooms = rooms.filter(r => r.status === 'Ocupada' || r.status === 'Ocupado');
+    const occupiedRooms = rooms.filter(r => r.status === RoomStatus.Occupied);
     const occupiedIncome = occupiedRooms.reduce((s, r) => s + (r.guest?.totalAgreedPrice || 0), 0);
 
     const sessionTransactions = cashRegister.isOpen && cashRegister.sessionId

@@ -1,4 +1,5 @@
 import React from 'react';
+import { RoomStatus } from '../../types';
 import type { Room } from '../../types';
 
 interface OccupancyBarsProps {
@@ -6,19 +7,19 @@ interface OccupancyBarsProps {
 }
 
 const statusColor: Record<string, string> = {
-  Ocupada: '#ef4444',
-  Disponible: '#10b981',
-  'En Limpieza': '#eab308',
-  Mantenimiento: '#3b82f6',
-  Reservada: '#a855f7',
+  [RoomStatus.Occupied]: '#ef4444',
+  [RoomStatus.Available]: '#10b981',
+  [RoomStatus.Cleaning]: '#eab308',
+  [RoomStatus.Maintenance]: '#3b82f6',
+  [RoomStatus.Reserved]: '#a855f7',
 };
 
 const statusLabel: Record<string, string> = {
-  Ocupada: 'Ocup',
-  Disponible: 'Disp',
-  'En Limpieza': 'Limp',
-  Mantenimiento: 'Mant',
-  Reservada: 'Resv',
+  [RoomStatus.Occupied]: 'Ocup',
+  [RoomStatus.Available]: 'Disp',
+  [RoomStatus.Cleaning]: 'Limp',
+  [RoomStatus.Maintenance]: 'Mant',
+  [RoomStatus.Reserved]: 'Resv',
 };
 
 const OccupancyBars: React.FC<OccupancyBarsProps> = ({ rooms }) => {
@@ -34,8 +35,8 @@ const OccupancyBars: React.FC<OccupancyBarsProps> = ({ rooms }) => {
               className="w-full rounded-lg transition-all duration-300"
               style={{
                 backgroundColor: statusColor[room.status] || '#94a3b8',
-                height: room.status === 'Ocupada' ? '48px' : room.status === 'Reservada' ? '36px' : '24px',
-                opacity: room.status === 'Disponible' ? 0.5 : 1,
+                height: room.status === RoomStatus.Occupied ? '48px' : room.status === RoomStatus.Reserved ? '36px' : '24px',
+                opacity: room.status === RoomStatus.Available ? 0.5 : 1,
               }}
               title={`Habitación ${room.id}: ${room.status}`}
             />
