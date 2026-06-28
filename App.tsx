@@ -6,17 +6,18 @@ import ReportsView from './components/ReportsView';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
 import CashView from './components/CashView';
 import { CalendarView } from './components/calendar/CalendarView';
+import { AdminView } from './components/admin/AdminView';
 import { useHotelData } from './hooks/useHotelData';
+import { useAdminData } from './hooks/useAdminData';
 import { AuthProvider } from './auth/AuthProvider';
 import { useAuth } from './auth/useAuth';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { LoginScreen } from './auth/LoginScreen';
-import { UsersView } from './auth/UsersView';
 import type { Room } from './types';
 import type { Permission } from './auth/types';
-import { BedIcon, BookmarkSquareIcon, ArchiveBoxIcon, PresentationChartIcon, CurrencyDollarIcon, CalendarDaysIcon, UserCircleIcon } from './components/icons/Icons';
+import { BedIcon, BookmarkSquareIcon, ArchiveBoxIcon, PresentationChartIcon, CurrencyDollarIcon, CalendarDaysIcon, CogIcon } from './components/icons/Icons';
 
-type View = 'rooms' | 'reservations' | 'reports' | 'executive' | 'cash' | 'calendar' | 'users';
+type View = 'rooms' | 'reservations' | 'reports' | 'executive' | 'cash' | 'calendar' | 'admin';
 
 interface NavItem {
   view: View;
@@ -32,7 +33,7 @@ const navItems: NavItem[] = [
   { view: 'cash', label: 'Caja', icon: <CurrencyDollarIcon className="w-5 h-5" />, permission: 'caja' },
   { view: 'reservations', label: 'Reservas', icon: <BookmarkSquareIcon className="w-5 h-5" />, permission: 'reservas' },
   { view: 'reports', label: 'Informes', icon: <ArchiveBoxIcon className="w-5 h-5" />, permission: 'informes' },
-  { view: 'users', label: 'Usuarios', icon: <UserCircleIcon className="w-5 h-5" />, permission: 'usuarios' },
+  { view: 'admin', label: 'Administración', icon: <CogIcon className="w-5 h-5" />, permission: 'configuracion' },
 ];
 
 const descriptions: Record<string, string> = {
@@ -42,7 +43,7 @@ const descriptions: Record<string, string> = {
   cash: 'Centro financiero unificado. Apertura, movimientos, arqueo, cierre e historial.',
   reservations: 'Vista y gestión de futuras reservas.',
   reports: 'Historial de cortes de caja e informes financieros.',
-  users: 'Administración de usuarios del sistema.',
+  admin: 'Configuración general del hotel, catálogos y usuarios.',
 };
 
 function App() {
@@ -61,6 +62,7 @@ function AppContent() {
     addReservation, cancelReservation, checkIn, checkInFromReservation,
     addCashTransaction, openRegister, closeRegisterWithArqueo,
   } = useHotelData();
+  const adminData = useAdminData();
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [activeView, setActiveView] = useState<View>('executive');
 
@@ -189,9 +191,42 @@ function AppContent() {
             />
           </ProtectedRoute>
         )}
-        {activeView === 'users' && (
-          <ProtectedRoute permission="usuarios">
-            <UsersView />
+        {activeView === 'admin' && (
+          <ProtectedRoute permission="configuracion">
+            <AdminView
+              hotelSettings={adminData.hotelSettings}
+              buildings={adminData.buildings}
+              floors={adminData.floors}
+              roomTypes={adminData.roomTypes}
+              rates={adminData.rates}
+              amenities={adminData.amenities}
+              taxes={adminData.taxes}
+              systemConfig={adminData.systemConfig}
+              rooms={rooms}
+              onSetHotelSettings={adminData.setHotelSettings}
+              onUpsertBuilding={adminData.upsertBuilding}
+              onRemoveBuilding={adminData.removeBuilding}
+              onToggleBuildingActive={adminData.toggleBuildingActive}
+              onUpsertFloor={adminData.upsertFloor}
+              onRemoveFloor={adminData.removeFloor}
+              onToggleFloorActive={adminData.toggleFloorActive}
+              onUpsertRoomType={adminData.upsertRoomType}
+              onRemoveRoomType={adminData.removeRoomType}
+              onToggleRoomTypeActive={adminData.toggleRoomTypeActive}
+              onUpsertRate={adminData.upsertRate}
+              onRemoveRate={adminData.removeRate}
+              onToggleRateActive={adminData.toggleRateActive}
+              onUpsertAmenity={adminData.upsertAmenity}
+              onRemoveAmenity={adminData.removeAmenity}
+              onToggleAmenityActive={adminData.toggleAmenityActive}
+              onUpsertTax={adminData.upsertTax}
+              onRemoveTax={adminData.removeTax}
+              onToggleTaxActive={adminData.toggleTaxActive}
+              onSetSystemConfig={adminData.setSystemConfig}
+              onUpdateRoom={updateRoom}
+              onAddRoom={addRoom}
+              onDeleteRoom={deleteRoom}
+            />
           </ProtectedRoute>
         )}
       </main>
