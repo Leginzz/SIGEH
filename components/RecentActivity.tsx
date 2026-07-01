@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ActivityItem } from '../hooks/useDashboardStats';
+import { SparklesIcon } from './icons/Icons';
 
 interface RecentActivityProps {
   activities: ActivityItem[];
@@ -16,8 +17,10 @@ const typeConfig: Record<string, { bg: string; label: string }> = {
 const RecentActivity: React.FC<RecentActivityProps> = ({ activities }) => {
   if (activities.length === 0) {
     return (
-      <div className="text-center p-6 text-gray-400 text-sm">
-        No hay actividad reciente.
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <SparklesIcon className="w-10 h-10 text-gray-300 mb-2" />
+        <p className="text-sm text-gray-500">No hay actividad reciente</p>
+        <p className="text-xs text-gray-400 mt-1">Los movimientos del día aparecerán aquí.</p>
       </div>
     );
   }

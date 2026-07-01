@@ -74,11 +74,11 @@ export function CalendarToolbar({
 
         <div className="flex bg-gray-100 rounded-lg p-0.5">
           <button onClick={() => onViewModeChange('week')}
-            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'week' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'week' ? 'bg-white text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
             Semana
           </button>
           <button onClick={() => onViewModeChange('month')}
-            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'month' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'month' ? 'bg-white text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
             Mes
           </button>
         </div>

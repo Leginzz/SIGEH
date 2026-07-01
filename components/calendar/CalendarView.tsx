@@ -106,7 +106,7 @@ function OccupancyTooltip({ data, onClose }: { data: TooltipData; onClose: () =>
   return (
     <div
       ref={tooltipRef}
-      className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-2.5 px-3 text-xs min-w-[200px] pointer-events-auto"
+      className="fixed z-50 bg-white rounded-lg border border-gray-200 py-2.5 px-3 text-xs min-w-[200px] pointer-events-auto"
       style={{
         left: position.left,
         top: position.top,
@@ -228,7 +228,7 @@ function CalendarGrid({
               {row.intervals.map((inv, ii) => (
                 <div
                   key={ii}
-                  className={`h-6 rounded-sm cursor-pointer transition-all duration-100 hover:brightness-110 hover:shadow-sm relative z-[1] ${
+                  className={`h-6 rounded-sm cursor-pointer transition-all duration-100 hover:brightness-110 relative z-[1] ${
                     inv.type === 'occupied' ? 'bg-blue-500' : 'bg-amber-400'
                   }`}
                   style={{ gridColumn: `${inv.gridStart} / ${inv.gridEnd}`, gridRow }}

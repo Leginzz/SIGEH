@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PaymentMethod } from '../types';
 import type { DailyReport } from '../types';
-import { XMarkIcon, CalendarIcon, CurrencyDollarIcon, BanknotesIcon, WalletIcon } from './icons/Icons';
+import { XMarkIcon, CalendarIcon, CurrencyDollarIcon, BanknotesIcon, WalletIcon, DocumentTextIcon } from './icons/Icons';
 
 interface ReportsViewProps {
   reports: DailyReport[];
@@ -14,9 +14,9 @@ const ReportModal: React.FC<{ report: DailyReport, onClose: () => void }> = ({ r
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl m-4 p-6 border border-gray-200" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl w-full max-w-3xl m-4 p-6 border border-gray-200" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
+          <h2 className="text-2xl font-bold text-indigo-600">
             Detalle del Corte del {new Date(report.date + 'T00:00:00').toLocaleDateString()}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><XMarkIcon className="w-8 h-8" /></button>
@@ -113,14 +113,20 @@ const ReportsView: React.FC<ReportsViewProps> = ({ reports }) => {
   const [selectedReport, setSelectedReport] = useState<DailyReport | null>(null);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-6">
       <h3 className="text-xl font-bold text-gray-900 mb-4">Historial de Cortes de Caja</h3>
       <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
         {reports.length === 0 && (
-          <p className="text-center p-6 text-gray-400">No se ha generado ningún corte de caja todavía.</p>
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <DocumentTextIcon className="w-12 h-12 text-gray-300 mb-3" />
+            <p className="text-sm font-medium text-gray-500">No hay cortes de caja</p>
+            <p className="text-xs text-gray-400 mt-1 max-w-xs">
+              Los cortes de caja se generan automáticamente al cerrar la caja registradora.
+            </p>
+          </div>
         )}
         {reports.map(report => (
-          <div key={report.id} onClick={() => setSelectedReport(report)} className="bg-white border border-gray-200 hover:border-indigo-300 rounded-lg p-4 flex justify-between items-center cursor-pointer transition-colors shadow-sm">
+          <div key={report.id} onClick={() => setSelectedReport(report)} className="bg-white border border-gray-200 hover:border-indigo-300 rounded-lg p-4 flex justify-between items-center cursor-pointer transition-colors">
             <div className="flex items-center gap-4">
               <CalendarIcon className="w-6 h-6 text-indigo-500" />
               <div>

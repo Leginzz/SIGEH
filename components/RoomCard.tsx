@@ -12,18 +12,18 @@ interface RoomCardProps {
 }
 
 const BG_CLASSES: Record<string, string> = {
-  [RoomStatus.Available]: 'hover:border-emerald-300 hover:shadow-emerald-100',
-  [RoomStatus.Occupied]: 'hover:border-blue-300 hover:shadow-blue-100',
-  [RoomStatus.Reserved]: 'hover:border-amber-300 hover:shadow-amber-100',
-  [RoomStatus.Cleaning]: 'hover:border-gray-300 hover:shadow-gray-100',
-  [RoomStatus.Maintenance]: 'hover:border-red-300 hover:shadow-red-100',
+  [RoomStatus.Available]: 'hover:border-emerald-300',
+  [RoomStatus.Occupied]: 'hover:border-blue-300',
+  [RoomStatus.Reserved]: 'hover:border-amber-300',
+  [RoomStatus.Cleaning]: 'hover:border-gray-300',
+  [RoomStatus.Maintenance]: 'hover:border-red-300',
 };
 
 const RoomCard: React.FC<RoomCardProps> = ({ room, onSelectRoom }) => {
   return (
     <div
       onClick={() => onSelectRoom(room)}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm transition-all duration-200 cursor-pointer overflow-hidden ${BG_CLASSES[room.status] || ''} hover:shadow-md`}
+      className={`bg-white rounded-xl border border-gray-200 transition-all duration-200 cursor-pointer overflow-hidden ${BG_CLASSES[room.status] || ''}`}
     >
       <RoomTopBar status={room.status} />
       <div className="p-3 space-y-2.5">

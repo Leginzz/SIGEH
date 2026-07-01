@@ -44,7 +44,7 @@ const denomLabels: Record<keyof DenominationCount, string> = {
 
 const isBill = (k: keyof DenominationCount) => k.startsWith('bill');
 
-const inputClass = "mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500";
+const inputClass = "mt-1 block w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500";
 const labelClass = "block text-sm font-medium text-gray-700";
 
 function formatDuration(startDate: string, startTime: string, endDate: string, endTime: string): string {
@@ -239,7 +239,7 @@ const CashView: React.FC<CashViewProps> = ({
 
       {showOpeningForm && (
         <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl  border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Apertura de Caja</h3>
             <form onSubmit={handleOpenRegister} className="space-y-4">
               <div>
@@ -297,7 +297,7 @@ const CashView: React.FC<CashViewProps> = ({
           </div>
 
           {showMovForm && (
-            <form onSubmit={handleAddMovement} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3">
+            <form onSubmit={handleAddMovement} className="bg-white rounded-xl  border border-gray-200 p-4 space-y-3">
               <h4 className="font-semibold text-gray-900">Registrar Movimiento Manual</h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <select value={moveType} onChange={e => setMoveType(e.target.value as typeof moveType)}
@@ -338,18 +338,18 @@ const CashView: React.FC<CashViewProps> = ({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="bg-white rounded-xl  border border-gray-200 p-5">
               <h3 className="font-semibold text-gray-900 mb-3">Ingresos Últimos 7 Días</h3>
               <BarChart data={incomeData} height={160} barColor="#6366f1" />
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="bg-white rounded-xl  border border-gray-200 p-5">
               <h3 className="font-semibold text-gray-900 mb-3">Método de Pago (Total)</h3>
               {paymentData.length > 0 ? <DonutChart data={paymentData} size={180} innerRadius={60} /> : <p className="text-gray-400 text-center py-8">Sin datos</p>}
             </div>
           </div>
 
           {showArqueo && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl  border border-gray-200 p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Arqueo y Cierre de Caja</h3>
               <div className="space-y-4">
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2">
@@ -427,7 +427,7 @@ const CashView: React.FC<CashViewProps> = ({
             </div>
           )}
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white rounded-xl  border border-gray-200">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <h3 className="font-semibold text-gray-900">Movimientos</h3>
@@ -482,7 +482,7 @@ const CashView: React.FC<CashViewProps> = ({
             )}
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white rounded-xl  border border-gray-200">
             <div className="p-4 border-b border-gray-100">
               <h3 className="font-semibold text-gray-900">Últimos Check-Outs</h3>
             </div>
@@ -549,18 +549,18 @@ const CashHistoryView: React.FC<{ closings: CashClosing[]; cashTransactions: Cas
     <div className="space-y-4">
       {closings.length > 0 && (
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-xl  border border-gray-200 p-4">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Sobrantes</p>
             <p className="text-xl font-bold text-emerald-600 mt-1">+${totalSurplus.toFixed(2)}</p>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-xl  border border-gray-200 p-4">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Faltantes</p>
             <p className="text-xl font-bold text-red-600 mt-1">-${totalShortage.toFixed(2)}</p>
           </div>
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+      <div className="bg-white rounded-xl  border border-gray-200">
         <div className="p-4 border-b border-gray-100 flex items-center gap-3">
           <h3 className="font-semibold text-gray-900">Historial de Cortes</h3>
           <div className="ml-auto">
@@ -705,7 +705,7 @@ const ClosingDetailView: React.FC<{
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl  border border-gray-200 overflow-hidden">
         <div className="flex border-b border-gray-200 overflow-x-auto">
           {tabs.map(t => (
             <button key={t.key} onClick={() => setDetailTab(t.key)}

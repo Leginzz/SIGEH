@@ -70,7 +70,7 @@ export const UsersView: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
@@ -136,7 +136,7 @@ export const UsersView: React.FC = () => {
 
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50" onClick={() => setDeleteConfirm(null)}>
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm m-4 p-6 border border-gray-200" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-xl w-full max-w-sm m-4 p-6 border border-gray-200" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-gray-900 mb-2">Confirmar eliminación</h3>
             <p className="text-sm text-gray-500 mb-6">¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.</p>
             <div className="flex gap-3 justify-end">
@@ -149,7 +149,7 @@ export const UsersView: React.FC = () => {
 
       {resetPasswordId && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50" onClick={() => { setResetPasswordId(null); setNewPassword(''); }}>
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm m-4 p-6 border border-gray-200" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-xl w-full max-w-sm m-4 p-6 border border-gray-200" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-gray-900 mb-2">Restablecer Contraseña</h3>
             <p className="text-sm text-gray-500 mb-4">Ingresa la nueva contraseña para este usuario.</p>
             <input type="text" value={newPassword} onChange={e => setNewPassword(e.target.value)}

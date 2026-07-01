@@ -40,7 +40,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, onSelectRoom, onAddRoom }) =
       ))}
       <div
         onClick={onAddRoom}
-        className="w-full rounded-xl border-2 border-dashed border-gray-300 cursor-pointer transition-all duration-200 hover:border-indigo-400 bg-white/50 hover:bg-white flex items-center justify-center gap-2 py-4 shadow-sm hover:shadow-md"
+        className="w-full rounded-xl border-2 border-dashed border-gray-300 cursor-pointer transition-all duration-200 hover:border-indigo-400 bg-white/50 hover:bg-white flex items-center justify-center gap-2 py-4"
         title="Agregar nueva habitación"
       >
         <PlusIcon className="w-5 h-5 text-gray-400" />

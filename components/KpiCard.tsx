@@ -22,7 +22,7 @@ const colorMap: Record<string, { bg: string; text: string }> = {
 const KpiCard: React.FC<KpiCardProps> = ({ title, value, subtitle, icon, color, trend }) => {
   const c = colorMap[color];
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col justify-between min-h-[110px]">
       <div className="flex items-start justify-between">
         <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">{title}</p>
         <div className={`${c.bg} p-2 rounded-lg`}>

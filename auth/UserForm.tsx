@@ -58,7 +58,7 @@ export const UserForm: React.FC<UserFormProps> = ({ user, onSave, onClose }) => 
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg m-4 p-6 border border-gray-200 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl w-full max-w-lg m-4 p-6 border border-gray-200 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-900">{isEdit ? 'Editar Usuario' : 'Nuevo Usuario'}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><XMarkIcon className="w-6 h-6" /></button>

@@ -9,7 +9,8 @@ import { RoomGuestInfo } from './rooms/RoomGuestInfo';
 import { RoomPayments } from './rooms/RoomPayments';
 import { RoomDetails } from './rooms/RoomDetails';
 import { RoomPrice } from './rooms/RoomPrice';
-import { XMarkIcon, TrashIcon, ArrowRightIcon } from './icons/Icons';
+import { ConfirmDialog } from './ConfirmDialog';
+import { XMarkIcon, TrashIcon, ArrowRightIcon, BookmarkSquareIcon } from './icons/Icons';
 
 interface RoomModalProps {
   room: Room;
@@ -29,6 +30,8 @@ const RoomModal: React.FC<RoomModalProps> = (props) => {
   const { room, onClose, onUpdateRoom, onCheckOutAndRecord, onDeleteRoom, onAddReservation, onCancelReservation, onCheckIn, onCheckInFromReservation } = props;
 
   const [modalView, setModalView] = useState<ModalView>('main');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<string | null>(null);
 
   const isDeletable = room.status !== RoomStatus.Occupied && room.reservations.length === 0;
 
@@ -39,9 +42,7 @@ const RoomModal: React.FC<RoomModalProps> = (props) => {
   };
 
   const confirmCancel = (reservationId: string) => {
-    if (window.confirm("¿Está seguro de que desea cancelar esta reserva?")) {
-      onCancelReservation(room.id, reservationId);
-    }
+    setCancelTarget(reservationId);
   };
 
   const setStatus = (status: RoomStatus) => {
@@ -54,9 +55,7 @@ const RoomModal: React.FC<RoomModalProps> = (props) => {
   };
 
   const handleDelete = () => {
-    if (isDeletable && window.confirm(`¿Está seguro de que desea eliminar la habitación ${room.roomNumber}? Esta acción es permanente.`)) {
-      onDeleteRoom(room.id);
-    }
+    if (isDeletable) setConfirmDelete(true);
   };
 
   const renderContent = () => {
@@ -131,7 +130,12 @@ const RoomModal: React.FC<RoomModalProps> = (props) => {
                   </div>
                 ))}
               </div>
-              {room.reservations.length === 0 && <p className="text-sm text-gray-400 text-center py-3">Sin reservas</p>}
+              {room.reservations.length === 0 && (
+                <div className="flex flex-col items-center py-4 text-center">
+                  <BookmarkSquareIcon className="w-8 h-8 text-gray-300 mb-1" />
+                  <p className="text-xs text-gray-400">Sin reservas programadas</p>
+                </div>
+              )}
               <button onClick={() => setModalView('reservation')} className="mt-3 w-full bg-amber-400 hover:bg-amber-300 text-white font-bold py-2.5 px-4 rounded-lg transition-colors text-sm">
                 Nueva Reserva
               </button>
@@ -178,8 +182,27 @@ const RoomModal: React.FC<RoomModalProps> = (props) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg m-4 border border-gray-200 overflow-hidden" onClick={e => e.stopPropagation()}>
+    <>
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Eliminar habitación"
+        message={`¿Está seguro de que desea eliminar la habitación ${room.roomNumber}? Esta acción es permanente.`}
+        confirmLabel="Eliminar"
+        variant="danger"
+        onConfirm={() => { onDeleteRoom(room.id); setConfirmDelete(false); }}
+        onCancel={() => setConfirmDelete(false)}
+      />
+      <ConfirmDialog
+        open={cancelTarget !== null}
+        title="Cancelar reserva"
+        message="¿Está seguro de que desea cancelar esta reserva?"
+        confirmLabel="Cancelar"
+        variant="danger"
+        onConfirm={() => { if (cancelTarget) onCancelReservation(room.id, cancelTarget); setCancelTarget(null); }}
+        onCancel={() => setCancelTarget(null)}
+      />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-lg m-4 border border-gray-200 overflow-hidden" onClick={e => e.stopPropagation()}>
         <RoomTopBar status={room.status} />
         <div className="p-5">
           <div className="flex items-start justify-between mb-4">
@@ -205,6 +228,7 @@ const RoomModal: React.FC<RoomModalProps> = (props) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

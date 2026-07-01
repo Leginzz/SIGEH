@@ -7,7 +7,7 @@ import BarChart from './charts/BarChart';
 import DonutChart from './charts/DonutChart';
 import OccupancyBars from './charts/OccupancyBars';
 import RecentActivity from './RecentActivity';
-import { CurrencyDollarIcon, CalendarDaysIcon, BuildingOfficeIcon } from './icons/Icons';
+import { CurrencyDollarIcon, CalendarDaysIcon, BuildingOfficeIcon, ChartBarIcon } from './icons/Icons';
 
 interface ExecutiveDashboardProps {
   rooms: Room[];
@@ -73,32 +73,40 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = (props) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Ingresos Últimos 7 Días</h3>
           {revenueDays.some(d => d.value > 0) ? (
             <BarChart data={revenueDays.map(d => ({ ...d }))} barColor="#6366f1" />
           ) : (
-            <p className="text-center text-gray-400 py-8">No hay ingresos registrados en los últimos 7 días.</p>
+            <div className="flex flex-col items-center py-8 text-center">
+              <ChartBarIcon className="w-10 h-10 text-gray-300 mb-2" />
+              <p className="text-sm text-gray-500">Sin ingresos esta semana</p>
+              <p className="text-xs text-gray-400 mt-1">Los ingresos aparecerán al registrar check-ins y cobros.</p>
+            </div>
           )}
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Método de Pago (Mes)</h3>
           {paymentMethods.some(p => p.value > 0) ? (
             <DonutChart data={paymentMethods} />
           ) : (
-            <p className="text-center text-gray-400 py-8">No hay pagos registrados este mes.</p>
+            <div className="flex flex-col items-center py-8 text-center">
+              <CurrencyDollarIcon className="w-10 h-10 text-gray-300 mb-2" />
+              <p className="text-sm text-gray-500">Sin pagos este mes</p>
+              <p className="text-xs text-gray-400 mt-1">Los métodos de pago se muestran al registrar transacciones.</p>
+            </div>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Estado de Habitaciones</h3>
           <OccupancyBars rooms={props.rooms} />
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Actividad Reciente</h3>
           <RecentActivity activities={recentActivity} />
         </div>

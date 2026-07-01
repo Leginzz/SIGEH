@@ -18,7 +18,7 @@ export class ErrorBoundary extends Component {
     if ((this as any).state.error) {
       return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-8">
-          <div className="bg-white rounded-xl shadow-lg border border-red-200 p-8 max-w-2xl w-full">
+          <div className="bg-white rounded-xl border border-red-200 p-8 max-w-2xl w-full">
             <h2 className="text-xl font-bold text-red-600 mb-4">Error en la aplicaci\u00f3n</h2>
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
               <p className="text-sm font-mono text-red-800 break-all">{(this as any).state.error.message}</p>

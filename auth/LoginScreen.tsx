@@ -27,11 +27,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-8">
         <div className="flex flex-col items-center mb-8">
           <img src="logo.png" alt="SIGEH" className="h-28 w-auto mb-4" />
-          <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">
+          <h1 className="text-2xl font-bold text-indigo-600">
             SIGEH
           </h1>
           <p className="text-sm text-gray-500 mt-1">Sistema de Gestión Hotelera</p>
@@ -76,7 +76,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
           <button
             type="submit"
             disabled={loading || !username || !password}
-            className="w-full bg-gradient-to-r from-indigo-600 to-cyan-500 text-white font-semibold py-2.5 rounded-lg hover:from-indigo-700 hover:to-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>

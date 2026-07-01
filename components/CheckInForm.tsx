@@ -112,7 +112,7 @@ const CheckInForm: React.FC<CheckInFormProps> = ({ room, onConfirm, onCancel, mo
     onConfirm({ ...guest, id: `${Date.now()}-${room.id}`, payments: mode === 'checkin' ? payments : undefined });
   };
 
-  const inputClass = "mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500";
+  const inputClass = "mt-1 block w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500";
   const labelClass = "block text-sm font-medium text-gray-700";
 
   return (

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import type { Room } from '../types';
+import { BookmarkSquareIcon } from './icons/Icons';
 
 interface ReservationsViewProps {
   rooms: Room[];
@@ -13,7 +14,7 @@ const ReservationsView: React.FC<ReservationsViewProps> = ({ rooms }) => {
   }, [rooms]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-6">
       <h3 className="text-xl font-bold text-gray-900 mb-4">Próximas Reservas</h3>
       <div className="overflow-y-auto max-h-[70vh]">
         <table className="w-full text-left">
@@ -30,8 +31,14 @@ const ReservationsView: React.FC<ReservationsViewProps> = ({ rooms }) => {
           <tbody className="divide-y divide-gray-200">
             {allReservations.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center p-6 text-gray-400">
-                  No hay reservas programadas.
+                <td colSpan={6}>
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <BookmarkSquareIcon className="w-12 h-12 text-gray-300 mb-3" />
+                    <p className="text-sm font-medium text-gray-500">No hay reservas programadas</p>
+                    <p className="text-xs text-gray-400 mt-1 max-w-xs">
+                      Las nuevas reservas aparecerán aquí. Selecciona una habitación disponible para crear una.
+                    </p>
+                  </div>
                 </td>
               </tr>
             )}
