@@ -69,51 +69,34 @@ export function AdminView(props: AdminViewProps) {
 
   const renderTab = () => {
     switch (activeTab) {
-      case 'general':
-        return <AdminGeneral settings={props.hotelSettings} onSave={props.onSetHotelSettings} />;
-      case 'buildings':
-        return <AdminBuildings buildings={props.buildings} onUpsert={props.onUpsertBuilding} onRemove={props.onRemoveBuilding} onToggleActive={props.onToggleBuildingActive} />;
-      case 'floors':
-        return <AdminFloors floors={props.floors} buildings={props.buildings} onUpsert={props.onUpsertFloor} onRemove={props.onRemoveFloor} onToggleActive={props.onToggleFloorActive} />;
-      case 'roomtypes':
-        return <AdminRoomTypes roomTypes={props.roomTypes} onUpsert={props.onUpsertRoomType} onRemove={props.onRemoveRoomType} onToggleActive={props.onToggleRoomTypeActive} />;
-      case 'rates':
-        return <AdminRates rates={props.rates} roomTypes={props.roomTypes} onUpsert={props.onUpsertRate} onRemove={props.onRemoveRate} onToggleActive={props.onToggleRateActive} />;
-      case 'amenities':
-        return <AdminAmenities amenities={props.amenities} onUpsert={props.onUpsertAmenity} onRemove={props.onRemoveAmenity} onToggleActive={props.onToggleAmenityActive} />;
-      case 'rooms':
-        return <AdminRooms rooms={props.rooms} floors={props.floors} roomTypes={props.roomTypes} amenities={props.amenities} rates={props.rates} buildings={props.buildings} onUpdateRoom={props.onUpdateRoom} onAddRoom={props.onAddRoom} onDeleteRoom={props.onDeleteRoom} />;
-      case 'taxes':
-        return <AdminTaxes taxes={props.taxes} onUpsert={props.onUpsertTax} onRemove={props.onRemoveTax} onToggleActive={props.onToggleTaxActive} />;
-      case 'system':
-        return <AdminSystem config={props.systemConfig} onSave={props.onSetSystemConfig} />;
-      case 'users':
-        return <UsersView />;
+      case 'general': return <AdminGeneral settings={props.hotelSettings} onSave={props.onSetHotelSettings} />;
+      case 'buildings': return <AdminBuildings buildings={props.buildings} onUpsert={props.onUpsertBuilding} onRemove={props.onRemoveBuilding} onToggleActive={props.onToggleBuildingActive} />;
+      case 'floors': return <AdminFloors floors={props.floors} buildings={props.buildings} onUpsert={props.onUpsertFloor} onRemove={props.onRemoveFloor} onToggleActive={props.onToggleFloorActive} />;
+      case 'roomtypes': return <AdminRoomTypes roomTypes={props.roomTypes} onUpsert={props.onUpsertRoomType} onRemove={props.onRemoveRoomType} onToggleActive={props.onToggleRoomTypeActive} />;
+      case 'rates': return <AdminRates rates={props.rates} roomTypes={props.roomTypes} onUpsert={props.onUpsertRate} onRemove={props.onRemoveRate} onToggleActive={props.onToggleRateActive} />;
+      case 'amenities': return <AdminAmenities amenities={props.amenities} onUpsert={props.onUpsertAmenity} onRemove={props.onRemoveAmenity} onToggleActive={props.onToggleAmenityActive} />;
+      case 'rooms': return <AdminRooms rooms={props.rooms} floors={props.floors} roomTypes={props.roomTypes} amenities={props.amenities} rates={props.rates} buildings={props.buildings} onUpdateRoom={props.onUpdateRoom} onAddRoom={props.onAddRoom} onDeleteRoom={props.onDeleteRoom} />;
+      case 'taxes': return <AdminTaxes taxes={props.taxes} onUpsert={props.onUpsertTax} onRemove={props.onRemoveTax} onToggleActive={props.onToggleTaxActive} />;
+      case 'system': return <AdminSystem config={props.systemConfig} onSave={props.onSetSystemConfig} />;
+      case 'users': return <UsersView />;
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="border-b border-gray-200 overflow-x-auto">
-        <div className="flex gap-1 min-w-max">
+        <div className="flex gap-0 min-w-max">
           {TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === tab.key
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
+                activeTab === tab.key ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}>
               {tab.label}
             </button>
           ))}
         </div>
       </div>
-      <div>
-        {renderTab()}
-      </div>
+      <div>{renderTab()}</div>
     </div>
   );
 }

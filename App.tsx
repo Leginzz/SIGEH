@@ -65,6 +65,7 @@ function AppContent() {
   const adminData = useAdminData();
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [activeView, setActiveView] = useState<View>('executive');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (selectedRoom) {
@@ -72,6 +73,10 @@ function AppContent() {
       setSelectedRoom(freshRoomData || null);
     }
   }, [rooms]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [activeView]);
 
   const handleSelectRoom = (room: Room) => setSelectedRoom(room);
   const handleCloseModal = () => setSelectedRoom(null);
@@ -89,7 +94,7 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-gray-400 text-sm">Cargando...</div>
       </div>
     );
@@ -100,13 +105,23 @@ function AppContent() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <aside className="w-64 bg-slate-900 text-white flex-shrink-0 min-h-screen flex flex-col">
-        <div className="p-5 border-b border-slate-700 flex flex-col items-center">
-          <img src="logo.png" alt="SIGEH" className="h-24 w-auto" />
-          <p className="text-xs text-slate-400 mt-1">Sistema de Gestión Hotelera</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className={`fixed inset-0 bg-black/40 z-20 transition-opacity duration-200 lg:hidden ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={() => setSidebarOpen(false)} />
+
+      <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-slate-900 text-white flex flex-col transition-transform duration-200 ease-out lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+
+        <div className="p-5 border-b border-slate-700">
+          <div className="flex items-center gap-3">
+            <img src="logo.png" alt="SIGEH" className="h-10 w-auto" />
+            <div>
+              <p className="text-sm font-bold text-white">SIGEH</p>
+              <p className="text-[11px] text-slate-400">Sistema de Gestión Hotelera</p>
+            </div>
+          </div>
         </div>
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {permittedNavItems.map(item => (
             <button
               key={item.view}
@@ -117,118 +132,135 @@ function AppContent() {
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              {item.icon}
+              <span className={`${activeView === item.view ? 'text-white' : 'text-slate-400'}`}>{item.icon}</span>
               <span>{item.label}</span>
             </button>
           ))}
         </nav>
-        <div className="border-t border-slate-700 p-4 space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold text-white">
+
+        <div className="border-t border-slate-700 p-3">
+          <div className="flex items-center gap-3 px-2 py-2">
+            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold text-white shrink-0">
               {user.nombre.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">{user.nombre}</p>
-              <p className="text-xs text-slate-400">{user.rol === 'admin' ? 'Admin' : 'Recepción'}</p>
+              <p className="text-[11px] text-slate-400">{user.rol === 'admin' ? 'Administrador' : 'Recepción'}</p>
             </div>
+            <button onClick={logout} title="Cerrar sesión"
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+              </svg>
+            </button>
           </div>
-          <button onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-            </svg>
-            Cerrar Sesión
-          </button>
         </div>
       </aside>
 
-      <main className="flex-1 p-6 lg:p-8">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {navItems.find(n => n.view === activeView)?.label}
-          </h2>
-          <p className="text-gray-500 mt-1">{descriptions[activeView]}</p>
-        </div>
+      <main className="lg:ml-64 min-h-screen flex flex-col">
+        <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 lg:px-6 h-14 flex items-center gap-3">
+          <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-1.5 text-gray-500 hover:text-gray-700 -ml-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-bold text-gray-900 truncate">
+              {navItems.find(n => n.view === activeView)?.label}
+            </h1>
+            <p className="text-xs text-gray-500 truncate">{descriptions[activeView]}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2 text-xs text-gray-400">
+              <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
+                {user.nombre.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-gray-600">{user.nombre}</span>
+            </div>
+          </div>
+        </header>
 
-        {activeView === 'rooms' && (
-          <ProtectedRoute permission="habitaciones">
-            <RoomGrid rooms={rooms} onSelectRoom={handleSelectRoom} onAddRoom={addRoom} />
-          </ProtectedRoute>
-        )}
-        {activeView === 'cash' && (
-          <ProtectedRoute permission="caja">
-            <CashView
-              rooms={rooms}
-              cashTransactions={cashTransactions}
-              cashRegister={cashRegister}
-              onOpenRegister={openRegister}
-              onAddCashTransaction={addCashTransaction}
-              onCloseRegister={closeRegisterWithArqueo}
-            />
-          </ProtectedRoute>
-        )}
-        {activeView === 'reservations' && (
-          <ProtectedRoute permission="reservas">
-            <ReservationsView rooms={rooms} />
-          </ProtectedRoute>
-        )}
-        {activeView === 'reports' && (
-          <ProtectedRoute permission="informes">
-            <ReportsView reports={dailyReports} />
-          </ProtectedRoute>
-        )}
-        {activeView === 'calendar' && (
-          <ProtectedRoute permission="calendario">
-            <CalendarView rooms={rooms} onSelectRoom={handleSelectRoom} />
-          </ProtectedRoute>
-        )}
-        {activeView === 'executive' && (
-          <ProtectedRoute permission="dashboard">
-            <ExecutiveDashboard
-              rooms={rooms}
-              cashTransactions={cashTransactions}
-              dailyReports={dailyReports}
-            />
-          </ProtectedRoute>
-        )}
-        {activeView === 'admin' && (
-          <ProtectedRoute permission="configuracion">
-            <AdminView
-              hotelSettings={adminData.hotelSettings}
-              buildings={adminData.buildings}
-              floors={adminData.floors}
-              roomTypes={adminData.roomTypes}
-              rates={adminData.rates}
-              amenities={adminData.amenities}
-              taxes={adminData.taxes}
-              systemConfig={adminData.systemConfig}
-              rooms={rooms}
-              onSetHotelSettings={adminData.setHotelSettings}
-              onUpsertBuilding={adminData.upsertBuilding}
-              onRemoveBuilding={adminData.removeBuilding}
-              onToggleBuildingActive={adminData.toggleBuildingActive}
-              onUpsertFloor={adminData.upsertFloor}
-              onRemoveFloor={adminData.removeFloor}
-              onToggleFloorActive={adminData.toggleFloorActive}
-              onUpsertRoomType={adminData.upsertRoomType}
-              onRemoveRoomType={adminData.removeRoomType}
-              onToggleRoomTypeActive={adminData.toggleRoomTypeActive}
-              onUpsertRate={adminData.upsertRate}
-              onRemoveRate={adminData.removeRate}
-              onToggleRateActive={adminData.toggleRateActive}
-              onUpsertAmenity={adminData.upsertAmenity}
-              onRemoveAmenity={adminData.removeAmenity}
-              onToggleAmenityActive={adminData.toggleAmenityActive}
-              onUpsertTax={adminData.upsertTax}
-              onRemoveTax={adminData.removeTax}
-              onToggleTaxActive={adminData.toggleTaxActive}
-              onSetSystemConfig={adminData.setSystemConfig}
-              onUpdateRoom={updateRoom}
-              onAddRoom={addRoom}
-              onDeleteRoom={deleteRoom}
-            />
-          </ProtectedRoute>
-        )}
+        <div className="flex-1 p-4 lg:p-6">
+          {activeView === 'rooms' && (
+            <ProtectedRoute permission="habitaciones">
+              <RoomGrid rooms={rooms} onSelectRoom={handleSelectRoom} onAddRoom={addRoom} />
+            </ProtectedRoute>
+          )}
+          {activeView === 'cash' && (
+            <ProtectedRoute permission="caja">
+              <CashView
+                rooms={rooms}
+                cashTransactions={cashTransactions}
+                cashRegister={cashRegister}
+                onOpenRegister={openRegister}
+                onAddCashTransaction={addCashTransaction}
+                onCloseRegister={closeRegisterWithArqueo}
+              />
+            </ProtectedRoute>
+          )}
+          {activeView === 'reservations' && (
+            <ProtectedRoute permission="reservas">
+              <ReservationsView rooms={rooms} />
+            </ProtectedRoute>
+          )}
+          {activeView === 'reports' && (
+            <ProtectedRoute permission="informes">
+              <ReportsView reports={dailyReports} />
+            </ProtectedRoute>
+          )}
+          {activeView === 'calendar' && (
+            <ProtectedRoute permission="calendario">
+              <CalendarView rooms={rooms} onSelectRoom={handleSelectRoom} />
+            </ProtectedRoute>
+          )}
+          {activeView === 'executive' && (
+            <ProtectedRoute permission="dashboard">
+              <ExecutiveDashboard
+                rooms={rooms}
+                cashTransactions={cashTransactions}
+                dailyReports={dailyReports}
+              />
+            </ProtectedRoute>
+          )}
+          {activeView === 'admin' && (
+            <ProtectedRoute permission="configuracion">
+              <AdminView
+                hotelSettings={adminData.hotelSettings}
+                buildings={adminData.buildings}
+                floors={adminData.floors}
+                roomTypes={adminData.roomTypes}
+                rates={adminData.rates}
+                amenities={adminData.amenities}
+                taxes={adminData.taxes}
+                systemConfig={adminData.systemConfig}
+                rooms={rooms}
+                onSetHotelSettings={adminData.setHotelSettings}
+                onUpsertBuilding={adminData.upsertBuilding}
+                onRemoveBuilding={adminData.removeBuilding}
+                onToggleBuildingActive={adminData.toggleBuildingActive}
+                onUpsertFloor={adminData.upsertFloor}
+                onRemoveFloor={adminData.removeFloor}
+                onToggleFloorActive={adminData.toggleFloorActive}
+                onUpsertRoomType={adminData.upsertRoomType}
+                onRemoveRoomType={adminData.removeRoomType}
+                onToggleRoomTypeActive={adminData.toggleRoomTypeActive}
+                onUpsertRate={adminData.upsertRate}
+                onRemoveRate={adminData.removeRate}
+                onToggleRateActive={adminData.toggleRateActive}
+                onUpsertAmenity={adminData.upsertAmenity}
+                onRemoveAmenity={adminData.removeAmenity}
+                onToggleAmenityActive={adminData.toggleAmenityActive}
+                onUpsertTax={adminData.upsertTax}
+                onRemoveTax={adminData.removeTax}
+                onToggleTaxActive={adminData.toggleTaxActive}
+                onSetSystemConfig={adminData.setSystemConfig}
+                onUpdateRoom={updateRoom}
+                onAddRoom={addRoom}
+                onDeleteRoom={deleteRoom}
+              />
+            </ProtectedRoute>
+          )}
+        </div>
       </main>
 
       {selectedRoom && (

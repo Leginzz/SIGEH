@@ -17,11 +17,11 @@ export function RoomQuickInfo({ room }: { room: Room }) {
     return (
       <div className="space-y-0.5 min-w-0">
         <p className="text-sm font-medium text-gray-900 truncate">{room.guest.name}</p>
-        <p className="text-[11px] text-gray-500">
+        <p className="text-xs text-gray-500">
           Salida: {new Date(room.guest.checkOutDate + 'T00:00:00').toLocaleDateString()}
         </p>
         {pending(room) > 0 && (
-          <p className="text-[11px] font-semibold text-red-500">${pending(room).toFixed(2)} pendiente</p>
+          <p className="text-xs font-semibold text-red-500">${pending(room).toFixed(2)} pendiente</p>
         )}
       </div>
     );
@@ -33,10 +33,10 @@ export function RoomQuickInfo({ room }: { room: Room }) {
       return (
         <div className="space-y-0.5 min-w-0">
           <p className="text-sm font-medium text-gray-900 truncate">{r.name}</p>
-          <p className="text-[11px] text-gray-500">
+          <p className="text-xs text-gray-500">
             Llega: {new Date(r.checkInDate + 'T00:00:00').toLocaleDateString()}
           </p>
-          <p className="text-[11px] text-gray-400">
+          <p className="text-xs text-gray-400">
             {nights(r.checkInDate, r.checkOutDate)} noches
           </p>
         </div>
@@ -47,12 +47,8 @@ export function RoomQuickInfo({ room }: { room: Room }) {
   if (room.status === RoomStatus.Available) {
     return (
       <div className="space-y-0.5 min-w-0">
-        <p className="text-xs text-gray-500">
-          ${room.pricePerNight} / noche
-        </p>
-        <p className="text-[11px] text-gray-400">
-          {room.capacity} huéspedes · Piso {room.floor}
-        </p>
+        <p className="text-xs text-gray-500">${room.pricePerNight} / noche</p>
+        <p className="text-xs text-gray-400">{room.capacity} huéspedes · Piso {room.floor}</p>
       </div>
     );
   }
@@ -61,7 +57,7 @@ export function RoomQuickInfo({ room }: { room: Room }) {
     return (
       <div className="space-y-0.5 min-w-0">
         <p className="text-xs text-gray-500">En limpieza</p>
-        <p className="text-[11px] text-gray-400">Tiempo estimado: 15 min</p>
+        <p className="text-xs text-gray-400">Tiempo estimado: 15 min</p>
       </div>
     );
   }
@@ -70,9 +66,7 @@ export function RoomQuickInfo({ room }: { room: Room }) {
     return (
       <div className="space-y-0.5 min-w-0">
         <p className="text-xs text-gray-500">En mantenimiento</p>
-        <p className="text-[11px] text-gray-400">
-          {new Date().toLocaleDateString()}
-        </p>
+        <p className="text-xs text-gray-400">{new Date().toLocaleDateString()}</p>
       </div>
     );
   }

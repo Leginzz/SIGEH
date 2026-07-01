@@ -11,22 +11,22 @@ interface RoomCardProps {
   onSelectRoom: (room: Room) => void;
 }
 
-const BG_CLASSES: Record<string, string> = {
-  [RoomStatus.Available]: 'hover:border-emerald-300',
-  [RoomStatus.Occupied]: 'hover:border-blue-300',
-  [RoomStatus.Reserved]: 'hover:border-amber-300',
-  [RoomStatus.Cleaning]: 'hover:border-gray-300',
-  [RoomStatus.Maintenance]: 'hover:border-red-300',
+const HOVER_CLASSES: Record<string, string> = {
+  [RoomStatus.Available]: 'hover:border-emerald-300 hover:bg-emerald-50/30',
+  [RoomStatus.Occupied]: 'hover:border-blue-300 hover:bg-blue-50/30',
+  [RoomStatus.Reserved]: 'hover:border-amber-300 hover:bg-amber-50/30',
+  [RoomStatus.Cleaning]: 'hover:border-gray-300 hover:bg-gray-50',
+  [RoomStatus.Maintenance]: 'hover:border-red-300 hover:bg-red-50/30',
 };
 
 const RoomCard: React.FC<RoomCardProps> = ({ room, onSelectRoom }) => {
   return (
     <div
       onClick={() => onSelectRoom(room)}
-      className={`bg-white rounded-xl border border-gray-200 transition-all duration-200 cursor-pointer overflow-hidden ${BG_CLASSES[room.status] || ''}`}
+      className={`bg-white rounded-xl border border-gray-200 transition-all duration-200 cursor-pointer overflow-hidden ${HOVER_CLASSES[room.status] || ''}`}
     >
       <RoomTopBar status={room.status} />
-      <div className="p-3 space-y-2.5">
+      <div className="p-3 space-y-2">
         <RoomHeader room={room} />
         <RoomQuickInfo room={room} />
         <div onClick={e => e.stopPropagation()}>

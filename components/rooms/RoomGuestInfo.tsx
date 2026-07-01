@@ -5,47 +5,65 @@ export function RoomGuestInfo({ guest }: { guest: Guest }) {
   const paid = guest.payments?.reduce((s, p) => s + p.amount, 0) ?? guest.amountPaidAtCheckIn ?? 0;
   const pending = Math.max(0, guest.totalAgreedPrice - paid);
 
+  const nights = Math.max(1, Math.round((new Date(guest.checkOutDate).getTime() - new Date(guest.checkInDate).getTime()) / 86400000));
+
   return (
-    <div className="space-y-3">
-      <Section title="Datos del Huésped">
-        <Row label="Nombre" value={guest.name} />
-        <Row label="Personas" value={`${guest.numberOfGuests}`} />
-        <Row label="Contacto" value={guest.contact} />
-        <Row label="Identificación" value={`${guest.identificationType} - ${guest.identificationNumber}`} />
-      </Section>
+    <div className="space-y-4">
+      <div>
+        <p className="text-xs font-semibold text-gray-400 mb-2">Datos del Huésped</p>
+        <div className="bg-gray-50 rounded-lg p-3 space-y-1.5">
+          <InfoRow label="Nombre" value={guest.name} />
+          <InfoRow label="Personas" value={`${guest.numberOfGuests}`} />
+          <InfoRow label="Contacto" value={guest.contact} />
+          <InfoRow label="Identificación" value={`${guest.identificationType} - ${guest.identificationNumber}`} />
+        </div>
+      </div>
 
-      <Section title="Información de la Estancia">
-        <Row label="Check-In" value={new Date(guest.checkInDate + 'T00:00:00').toLocaleDateString()} />
-        <Row label="Check-Out" value={new Date(guest.checkOutDate + 'T00:00:00').toLocaleDateString()} />
-        <Row label="Noches" value={`${Math.max(1, Math.round((new Date(guest.checkOutDate).getTime() - new Date(guest.checkInDate).getTime()) / 86400000))}`} />
-        <Row label="Toallas" value={`${guest.numberOfTowels}`} />
-      </Section>
+      <div>
+        <p className="text-xs font-semibold text-gray-400 mb-2">Información de la Estancia</p>
+        <div className="bg-gray-50 rounded-lg p-3 space-y-1.5">
+          <InfoRow label="Check-In" value={new Date(guest.checkInDate + 'T00:00:00').toLocaleDateString()} />
+          <InfoRow label="Check-Out" value={new Date(guest.checkOutDate + 'T00:00:00').toLocaleDateString()} />
+          <InfoRow label="Noches" value={`${nights}`} />
+          <InfoRow label="Toallas" value={`${guest.numberOfTowels}`} />
+        </div>
+      </div>
 
-      <Section title="Pago">
-        <Row label="Total acordado" value={`$${guest.totalAgreedPrice.toFixed(2)}`} />
-        <Row label="Pagado" value={`-$${paid.toFixed(2)}`} valueClass="text-emerald-600" />
-        {pending > 0 && (
-          <Row label="Saldo pendiente" value={`$${pending.toFixed(2)}`} valueClass="text-red-600 font-bold" />
-        )}
-        {guest.paymentMethod && (
-          <Row label="Método de pago" value={guest.paymentMethod} />
-        )}
-      </Section>
+      <div>
+        <p className="text-xs font-semibold text-gray-400 mb-2">Pago</p>
+        <div className="bg-gray-50 rounded-lg p-3 space-y-1.5">
+          <InfoRow label="Total acordado" value={`$${guest.totalAgreedPrice.toFixed(2)}`} />
+          <InfoRow label="Pagado" value={`-$${paid.toFixed(2)}`} valueClass="text-emerald-600 font-medium" />
+          {pending > 0 && (
+            <div className="flex justify-between items-center text-sm pt-1.5 border-t border-gray-200">
+              <span className="font-medium text-gray-600">Saldo pendiente</span>
+              <span className="font-bold text-red-600">${pending.toFixed(2)}</span>
+            </div>
+          )}
+          {guest.paymentMethod && <InfoRow label="Método de pago" value={guest.paymentMethod} />}
+        </div>
+      </div>
 
       {guest.hasVehicle && (
-        <Section title="Vehículo">
-          <Row label="Vehículo" value={guest.vehicleDetails || 'Sí'} />
-        </Section>
+        <div>
+          <p className="text-xs font-semibold text-gray-400 mb-2">Vehículo</p>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-sm text-gray-700">{guest.vehicleDetails || 'Sí'}</p>
+          </div>
+        </div>
       )}
 
       {guest.notes && (
-        <Section title="Observaciones">
-          <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{guest.notes}</p>
-        </Section>
+        <div>
+          <p className="text-xs font-semibold text-gray-400 mb-2">Observaciones</p>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-sm text-gray-600">{guest.notes}</p>
+          </div>
+        </div>
       )}
 
       {guest.invoiceRequested && (
-        <div className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+        <div className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
           Factura solicitada
         </div>
       )}
@@ -53,16 +71,7 @@ export function RoomGuestInfo({ guest }: { guest: Guest }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <h4 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">{title}</h4>
-      <div className="space-y-1.5">{children}</div>
-    </div>
-  );
-}
-
-function Row({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
+function InfoRow({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
   return (
     <div className="flex justify-between items-center text-sm">
       <span className="text-gray-500">{label}</span>

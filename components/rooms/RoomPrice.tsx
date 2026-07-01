@@ -6,13 +6,13 @@ export function RoomPrice({ price, onSave }: { price: number; onSave?: (p: numbe
 
   if (editing) {
     return (
-      <div className="flex items-center gap-1.5">
-        <span className="text-[11px] text-gray-400">$</span>
+      <div className="flex items-center gap-1">
+        <span className="text-xs text-gray-400">$</span>
         <input
           type="number"
           value={value}
           onChange={e => setValue(Number(e.target.value))}
-          className="w-16 text-xs bg-gray-50 border border-gray-200 rounded px-1 py-0.5"
+          className="w-16 text-xs border border-gray-300 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           autoFocus
           onBlur={() => { onSave?.(value); setEditing(false); }}
           onKeyDown={e => { if (e.key === 'Enter') { onSave?.(value); setEditing(false); } }}
@@ -22,9 +22,9 @@ export function RoomPrice({ price, onSave }: { price: number; onSave?: (p: numbe
   }
 
   return (
-    <div className="flex items-center gap-1 cursor-pointer" onClick={() => setEditing(true)}>
+    <div className="flex items-center gap-1 cursor-pointer hover:opacity-70" onClick={() => setEditing(true)} title="Editar precio">
       <span className="text-xs font-medium text-emerald-600">${price}</span>
-      <span className="text-[10px] text-gray-400">/noche</span>
+      <span className="text-xs text-gray-400">/noche</span>
     </div>
   );
 }

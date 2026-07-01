@@ -14,7 +14,7 @@ export function RoomHeader({ room }: { room: Room }) {
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-base font-bold text-gray-900">{room.roomNumber}</span>
-        <span className="text-[10px] text-gray-400 uppercase tracking-wider hidden sm:inline">
+        <span className="text-[11px] text-gray-400 hidden sm:inline">
           {TYPE_LABELS[room.roomType] || room.roomType}
         </span>
       </div>

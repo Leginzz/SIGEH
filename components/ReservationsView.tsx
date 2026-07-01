@@ -14,47 +14,46 @@ const ReservationsView: React.FC<ReservationsViewProps> = ({ rooms }) => {
   }, [rooms]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h3 className="text-xl font-bold text-gray-900 mb-4">Próximas Reservas</h3>
-      <div className="overflow-y-auto max-h-[70vh]">
-        <table className="w-full text-left">
-          <thead className="sticky top-0 bg-gray-50">
-            <tr>
-              <th className="p-3 text-sm font-semibold text-gray-500">Habitación</th>
-              <th className="p-3 text-sm font-semibold text-gray-500">Huésped</th>
-              <th className="p-3 text-sm font-semibold text-gray-500">Contacto</th>
-              <th className="p-3 text-sm font-semibold text-gray-500">Check-In</th>
-              <th className="p-3 text-sm font-semibold text-gray-500">Check-Out</th>
-              <th className="p-3 text-sm font-semibold text-gray-500 text-right">Monto Acordado</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {allReservations.length === 0 && (
-              <tr>
-                <td colSpan={6}>
-                  <div className="flex flex-col items-center justify-center py-10 text-center">
-                    <BookmarkSquareIcon className="w-12 h-12 text-gray-300 mb-3" />
-                    <p className="text-sm font-medium text-gray-500">No hay reservas programadas</p>
-                    <p className="text-xs text-gray-400 mt-1 max-w-xs">
-                      Las nuevas reservas aparecerán aquí. Selecciona una habitación disponible para crear una.
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            )}
-            {allReservations.map(res => (
-              <tr key={res.id} className="hover:bg-gray-50">
-                <td className="p-3 font-bold text-gray-800">#{res.roomId}</td>
-                <td className="p-3 text-gray-700">{res.name}</td>
-                <td className="p-3 text-gray-700">{res.contact}</td>
-                <td className="p-3 text-gray-700">{new Date(res.checkInDate + 'T00:00:00').toLocaleDateString()}</td>
-                <td className="p-3 text-gray-700">{new Date(res.checkOutDate + 'T00:00:00').toLocaleDateString()}</td>
-                <td className="p-3 text-green-600 font-semibold text-right">${res.totalAgreedPrice.toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="bg-white border border-gray-200 rounded-xl">
+      <div className="px-5 py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-700">Próximas Reservas</h3>
       </div>
+      {allReservations.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <BookmarkSquareIcon className="w-12 h-12 text-gray-300 mb-3" />
+          <p className="text-sm font-medium text-gray-500">No hay reservas programadas</p>
+          <p className="text-xs text-gray-400 mt-1 max-w-xs">
+            Las nuevas reservas aparecerán aquí. Selecciona una habitación disponible para crear una.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-gray-100">
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Hab</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Huésped</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Contacto</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Check-In</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Check-Out</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Monto</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {allReservations.map(res => (
+                <tr key={res.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 font-semibold text-gray-900">#{res.roomId}</td>
+                  <td className="px-4 py-3 text-gray-700">{res.name}</td>
+                  <td className="px-4 py-3 text-gray-500">{res.contact}</td>
+                  <td className="px-4 py-3 text-gray-600">{new Date(res.checkInDate + 'T00:00:00').toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-gray-600">{new Date(res.checkOutDate + 'T00:00:00').toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-emerald-600 font-semibold text-right">${res.totalAgreedPrice.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

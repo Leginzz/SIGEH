@@ -9,12 +9,6 @@ interface CalendarViewProps {
   onSelectRoom?: (room: Room) => void;
 }
 
-function addDays(d: Date, n: number): Date {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
-  return r;
-}
-
 function getMonday(d: Date): Date {
   const r = new Date(d);
   const day = r.getDay();
@@ -22,15 +16,12 @@ function getMonday(d: Date): Date {
   return r;
 }
 
-function getBgClass(status: string): string {
-  switch (status) {
-    case 'occupied': return 'bg-blue-100';
-    case 'available': return 'bg-emerald-50';
-    case 'reserved': return 'bg-amber-100';
-    case 'cleaning': return 'bg-gray-100';
-    case 'maintenance': return 'bg-red-100';
-    default: return 'bg-emerald-50';
-  }
+function getDayBg(status: string): string {
+  const map: Record<string, string> = {
+    occupied: 'bg-indigo-100', available: 'bg-emerald-50', reserved: 'bg-amber-100',
+    cleaning: 'bg-gray-100', maintenance: 'bg-red-100',
+  };
+  return map[status] || 'bg-emerald-50';
 }
 
 function getDayStatusForDate(room: Room, dateStr: string): string {
@@ -47,21 +38,22 @@ function isDayCovered(dayIndex: number, intervals: StayInterval[]): boolean {
   return intervals.some(inv => col >= inv.gridStart && col < inv.gridEnd);
 }
 
+const KPI_ITEMS = (k: KpiData) => [
+  { label: 'Ocupadas', value: k.occupied, color: 'text-indigo-700', bg: 'bg-indigo-50' },
+  { label: 'Disponibles', value: k.available, color: 'text-emerald-700', bg: 'bg-emerald-50' },
+  { label: 'Reservadas', value: k.reserved, color: 'text-amber-700', bg: 'bg-amber-50' },
+  { label: 'Mantenimiento', value: k.maintenance, color: 'text-red-700', bg: 'bg-red-50' },
+  { label: 'Check-In', value: k.checkInsToday, color: 'text-emerald-700', bg: 'bg-emerald-50' },
+  { label: 'Check-Out', value: k.checkOutsToday, color: 'text-orange-700', bg: 'bg-orange-50' },
+  { label: 'Ocupación', value: `${k.occupancyRate}%`, color: 'text-indigo-700', bg: 'bg-indigo-50' },
+];
+
 function CalendarKPI({ kpis }: { kpis: KpiData }) {
-  const items = [
-    { label: 'Ocupadas', value: kpis.occupied, color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200' },
-    { label: 'Disponibles', value: kpis.available, color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-    { label: 'Reservadas', value: kpis.reserved, color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200' },
-    { label: 'Mantenimiento', value: kpis.maintenance, color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200' },
-    { label: 'Check-In Hoy', value: kpis.checkInsToday, color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-200' },
-    { label: 'Check-Out Hoy', value: kpis.checkOutsToday, color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200' },
-    { label: 'Ocupación', value: `${kpis.occupancyRate}%`, color: 'text-indigo-700', bg: 'bg-indigo-50', border: 'border-indigo-200' },
-  ];
   return (
     <div className="flex gap-2 flex-wrap">
-      {items.map(item => (
-        <div key={item.label} className={`${item.bg} ${item.border} border rounded-lg px-3 py-1.5 flex items-center gap-2`}>
-          <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500">{item.label}</span>
+      {KPI_ITEMS(kpis).map(item => (
+        <div key={item.label} className={`${item.bg} rounded-lg px-3 py-1.5 flex items-center gap-2`}>
+          <span className="text-[10px] font-medium uppercase text-gray-500">{item.label}</span>
           <span className={`text-base font-bold ${item.color}`}>{item.value}</span>
         </div>
       ))}
@@ -78,43 +70,30 @@ interface TooltipData {
 function OccupancyTooltip({ data, onClose }: { data: TooltipData; onClose: () => void }) {
   const { interval, roomLabel } = data;
   const guest = interval.guest;
-
   const checkIn = new Date(guest.checkInDate + 'T00:00:00');
   const checkOut = new Date(guest.checkOutDate + 'T00:00:00');
   const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
   const paid = guest.payments?.reduce((s, p) => s + p.amount, 0) ?? guest.amountPaidAtCheckIn ?? 0;
   const pending = Math.max(0, guest.totalAgreedPrice - paid);
 
-  const tooltipRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ top: 0, left: 0, above: true });
+  const tipRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
-    if (!tooltipRef.current) return;
-    const tip = tooltipRef.current;
-    const tipRect = tip.getBoundingClientRect();
-    const spaceAbove = data.barRect.top;
-    const spaceBelow = window.innerHeight - data.barRect.bottom;
-    const above = spaceAbove > spaceBelow || spaceAbove > 180;
-
-    setPosition({
-      top: above ? data.barRect.top - 8 : data.barRect.bottom + 8,
+    if (!tipRef.current) return;
+    const tr = tipRef.current.getBoundingClientRect();
+    const above = data.barRect.top > window.innerHeight / 2;
+    setPos({
+      top: above ? data.barRect.top - tr.height - 8 : data.barRect.bottom + 8,
       left: data.barRect.left + data.barRect.width / 2,
-      above,
     });
   }, [data]);
 
   return (
-    <div
-      ref={tooltipRef}
-      className="fixed z-50 bg-white rounded-lg border border-gray-200 py-2.5 px-3 text-xs min-w-[200px] pointer-events-auto"
-      style={{
-        left: position.left,
-        top: position.top,
-        transform: 'translate(-50%, 0)',
-      }}
-      onMouseEnter={() => {}}
-      onMouseLeave={onClose}
-    >
+    <div ref={tipRef}
+      className="fixed z-50 bg-white rounded-lg border border-gray-200 py-2.5 px-3 text-xs min-w-[180px] pointer-events-auto"
+      style={{ left: pos.left, top: pos.top, transform: 'translate(-50%, 0)' }}
+      onMouseEnter={() => {}} onMouseLeave={onClose}>
       <div className="font-semibold text-gray-900 text-sm mb-2 border-b border-gray-100 pb-1.5">{roomLabel}</div>
       <div className="space-y-1">
         <Row label="Huésped" value={guest.name} />
@@ -122,17 +101,14 @@ function OccupancyTooltip({ data, onClose }: { data: TooltipData; onClose: () =>
         <Row label="Check-Out" value={guest.checkOutDate} />
         <Row label="Noches" value={`${nights}`} />
         {pending > 0 && (
-          <div className="flex justify-between gap-4 pt-1 border-t border-gray-100 mt-1">
+          <div className="flex justify-between pt-1 border-t border-gray-100 mt-1">
             <span className="text-gray-500">Saldo pendiente</span>
             <span className="font-bold text-red-600">${pending.toFixed(2)}</span>
           </div>
         )}
-        <Row label="Método de pago" value={guest.paymentMethod || '—'} />
-        <Row
-          label="Estado"
-          value={interval.type === 'occupied' ? 'Ocupada' : 'Reservada'}
-          valueClass={interval.type === 'occupied' ? 'text-blue-600 font-medium' : 'text-amber-600 font-medium'}
-        />
+        <Row label="Pago" value={guest.paymentMethod || '—'} />
+        <Row label="Estado" value={interval.type === 'occupied' ? 'Ocupada' : 'Reservada'}
+          valueClass={interval.type === 'occupied' ? 'text-indigo-600 font-medium' : 'text-amber-600 font-medium'} />
       </div>
     </div>
   );
@@ -148,9 +124,7 @@ function Row({ label, value, valueClass }: { label: string; value: string; value
 }
 
 function CalendarGrid({
-  days,
-  roomRows,
-  onSelectRoom,
+  days, roomRows, onSelectRoom,
 }: {
   days: DayInfo[];
   roomRows: RoomRowData[];
@@ -158,106 +132,60 @@ function CalendarGrid({
 }) {
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const hideTimeout = useRef<number | null>(null);
-
-  const showTooltip = useCallback((data: TooltipData) => {
-    if (hideTimeout.current) clearTimeout(hideTimeout.current);
-    setTooltip(data);
-  }, []);
-
-  const hideTooltip = useCallback(() => {
-    hideTimeout.current = window.setTimeout(() => setTooltip(null), 100);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (hideTimeout.current) clearTimeout(hideTimeout.current);
-    };
-  }, []);
+  const show = useCallback((d: TooltipData) => { if (hideTimeout.current) clearTimeout(hideTimeout.current); setTooltip(d); }, []);
+  const hide = useCallback(() => { hideTimeout.current = window.setTimeout(() => setTooltip(null), 100); }, []);
+  useEffect(() => () => { if (hideTimeout.current) clearTimeout(hideTimeout.current); }, []);
 
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-      <div
-        className="grid gap-0"
-        style={{
-          gridTemplateColumns: `128px repeat(${days.length}, minmax(24px, 1fr))`,
-          minWidth: `${128 + days.length * 24}px`,
-        }}
-      >
-        <div className="sticky left-0 z-20 bg-white px-1.5 py-1.5 text-[9px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 border-r border-gray-100">
-          Habitaci\u00f3n
-        </div>
+      <div className="grid gap-0" style={{ gridTemplateColumns: `100px repeat(${days.length}, minmax(22px, 1fr))`, minWidth: `${100 + days.length * 22}px` }}>
+        <div className="sticky left-0 z-20 bg-white px-1.5 py-1 text-[9px] font-semibold text-gray-500 uppercase border-b border-gray-200 border-r border-gray-100">Hab</div>
         {days.map((day, i) => (
-          <div
-            key={day.date}
-            className={`text-center border-b border-gray-200 py-1 ${day.isToday ? 'bg-indigo-50/50' : ''}`}
-            style={{ gridColumn: i + 2, gridRow: 1 }}
-          >
+          <div key={day.date} className={`text-center border-b border-gray-200 py-0.5 ${day.isToday ? 'bg-indigo-50/50' : ''}`} style={{ gridColumn: i + 2, gridRow: 1 }}>
             <div className="text-[8px] text-gray-400 leading-tight">{day.dayName}</div>
-            <div className={`text-[11px] leading-tight ${day.isToday ? 'font-bold text-indigo-700' : 'text-gray-700'}`}>
-              {day.day}
-            </div>
+            <div className={`text-[10px] leading-tight ${day.isToday ? 'font-bold text-indigo-700' : 'text-gray-700'}`}>{day.day}</div>
           </div>
         ))}
 
         {roomRows.map((row, ri) => {
-          const gridRow = ri + 2;
+          const gr = ri + 2;
           if (row.isUniformStatus) {
             const color = row.uniformStatus === 'maintenance' ? 'bg-red-100' : 'bg-gray-100';
             return (
               <React.Fragment key={row.room.id}>
-                <RoomLabel label={row.label} gridRow={gridRow} />
-                <div className={`h-6 rounded-sm ${color}`} style={{ gridColumn: `2 / ${days.length + 2}`, gridRow }} />
+                <RoomLabel label={row.label} gridRow={gr} />
+                <div className={`h-5 rounded-sm ${color}`} style={{ gridColumn: `2 / ${days.length + 2}`, gridRow: gr }} />
               </React.Fragment>
             );
           }
-
           return (
             <React.Fragment key={row.room.id}>
-              <RoomLabel label={row.label} gridRow={gridRow} />
+              <RoomLabel label={row.label} gridRow={gr} />
               {days.map((day, di) => {
                 if (isDayCovered(di, row.intervals)) return null;
-                const status = getDayStatusForDate(row.room, day.date);
-                return (
-                  <div
-                    key={day.date}
-                    className={`h-6 ${getBgClass(status)} border-b border-gray-50`}
-                    style={{ gridColumn: di + 2, gridRow }}
-                  />
-                );
+                return <div key={day.date} className={`h-5 ${getDayBg(getDayStatusForDate(row.room, day.date))}`} style={{ gridColumn: di + 2, gridRow: gr }} />;
               })}
               {row.intervals.map((inv, ii) => (
-                <div
-                  key={ii}
-                  className={`h-6 rounded-sm cursor-pointer transition-all duration-100 hover:brightness-110 relative z-[1] ${
-                    inv.type === 'occupied' ? 'bg-blue-500' : 'bg-amber-400'
-                  }`}
-                  style={{ gridColumn: `${inv.gridStart} / ${inv.gridEnd}`, gridRow }}
+                <div key={ii}
+                  className={`h-5 rounded-sm cursor-pointer transition-all hover:brightness-110 relative z-[1] ${inv.type === 'occupied' ? 'bg-indigo-500' : 'bg-amber-400'}`}
+                  style={{ gridColumn: `${inv.gridStart} / ${inv.gridEnd}`, gridRow: gr }}
                   onClick={() => onSelectRoom?.(row.room)}
-                  onMouseEnter={e => {
-                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                    showTooltip({ interval: inv, roomLabel: row.label, barRect: rect });
-                  }}
-                  onMouseLeave={hideTooltip}
-                />
+                  onMouseEnter={e => show({ interval: inv, roomLabel: row.label, barRect: (e.currentTarget as HTMLElement).getBoundingClientRect() })}
+                  onMouseLeave={hide} />
               ))}
             </React.Fragment>
           );
         })}
       </div>
-
-      {tooltip && (
-        <OccupancyTooltip data={tooltip} onClose={() => setTooltip(null)} />
-      )}
+      {tooltip && <OccupancyTooltip data={tooltip} onClose={() => setTooltip(null)} />}
     </div>
   );
 }
 
 function RoomLabel({ label, gridRow }: { label: string; gridRow: number }) {
   return (
-    <div
-      className="sticky left-0 z-10 bg-white px-1.5 flex items-center text-[11px] font-medium text-gray-900 border-b border-gray-100 border-r border-gray-100"
-      style={{ gridColumn: 1, gridRow }}
-    >
+    <div className="sticky left-0 z-10 bg-white px-1.5 flex items-center text-[11px] font-medium text-gray-900 border-b border-gray-100 border-r border-gray-100"
+      style={{ gridColumn: 1, gridRow }}>
       {label}
     </div>
   );
@@ -271,80 +199,35 @@ export function CalendarView({ rooms, onSelectRoom }: CalendarViewProps) {
   const [statusFilters, setStatusFilters] = useState<Set<string>>(new Set());
   const [floorFilter, setFloorFilter] = useState<number | null>(null);
 
-  const totalFloors = useMemo(() => {
-    let max = 0;
-    for (const r of rooms) { if (r.floor > max) max = r.floor; }
-    return max;
-  }, [rooms]);
+  const totalFloors = useMemo(() => rooms.reduce((m, r) => Math.max(m, r.floor), 0), [rooms]);
 
-  const { days, roomRows, kpis, periodLabel, totalColumns } = useCalendarData(
-    rooms, viewMode, baseDate, searchQuery, statusFilters, floorFilter,
-  );
+  const { days, roomRows, kpis, periodLabel } = useCalendarData(rooms, viewMode, baseDate, searchQuery, statusFilters, floorFilter);
 
   const handleNavigate = useCallback((dir: 'prev' | 'next' | 'today') => {
-    if (dir === 'today') {
-      const d = new Date();
-      setBaseDate(viewMode === 'week' ? getMonday(d) : new Date(d.getFullYear(), d.getMonth(), 1));
-    } else {
-      setBaseDate(prev => {
-        const d = new Date(prev);
-        if (viewMode === 'week') d.setDate(d.getDate() + (dir === 'prev' ? -7 : 7));
-        else d.setMonth(d.getMonth() + (dir === 'prev' ? -1 : 1));
-        return d;
-      });
-    }
+    if (dir === 'today') { const d = new Date(); setBaseDate(viewMode === 'week' ? getMonday(d) : new Date(d.getFullYear(), d.getMonth(), 1)); }
+    else setBaseDate(prev => { const d = new Date(prev); viewMode === 'week' ? d.setDate(d.getDate() + (dir === 'prev' ? -7 : 7)) : d.setMonth(d.getMonth() + (dir === 'prev' ? -1 : 1)); return d; });
   }, [viewMode]);
 
-  const handleViewModeChange = useCallback((mode: 'week' | 'month') => {
-    setViewMode(mode);
-    const d = new Date();
-    setBaseDate(mode === 'week' ? getMonday(baseDate) : new Date(baseDate.getFullYear(), baseDate.getMonth(), 1));
-  }, [baseDate]);
+  const handleViewModeChange = useCallback((mode: 'week' | 'month') => { setViewMode(mode); setBaseDate(mode === 'week' ? getMonday(baseDate) : new Date(baseDate.getFullYear(), baseDate.getMonth(), 1)); }, [baseDate]);
 
-  const handleDateSelect = useCallback((date: Date) => {
-    setBaseDate(viewMode === 'week' ? getMonday(date) : new Date(date.getFullYear(), date.getMonth(), 1));
-  }, [viewMode]);
+  const handleDateSelect = useCallback((date: Date) => { setBaseDate(viewMode === 'week' ? getMonday(date) : new Date(date.getFullYear(), date.getMonth(), 1)); }, [viewMode]);
 
   const toggleFilter = useCallback((status: string) => {
-    setStatusFilters(prev => {
-      const next = new Set(prev);
-      if (next.has(status)) next.delete(status);
-      else next.add(status);
-      if (next.size === 5) return new Set();
-      return next;
-    });
+    setStatusFilters(prev => { const n = new Set(prev); n.has(status) ? n.delete(status) : n.add(status); if (n.size === 5) return new Set(); return n; });
   }, []);
 
   return (
     <div className="space-y-3">
       <CalendarKPI kpis={kpis} />
-      <CalendarToolbar
-        viewMode={viewMode}
-        onViewModeChange={handleViewModeChange}
-        onNavigate={handleNavigate}
-        periodLabel={periodLabel}
-        baseDate={baseDate}
-        onDateSelect={handleDateSelect}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        statusFilters={statusFilters}
-        onFilterToggle={toggleFilter}
-        floorFilter={floorFilter}
-        onFloorFilterChange={setFloorFilter}
-        totalFloors={totalFloors}
-      />
-      <CalendarGrid
-        days={days}
-        roomRows={roomRows}
-        onSelectRoom={onSelectRoom}
-      />
-      {roomRows.length === 0 && (
-        <div className="text-center py-12 text-gray-400 text-sm">
-          {searchQuery || statusFilters.size > 0
-            ? 'No se encontraron habitaciones con los filtros actuales.'
-            : 'No hay habitaciones registradas.'}
+      <CalendarToolbar viewMode={viewMode} onViewModeChange={handleViewModeChange} onNavigate={handleNavigate}
+        periodLabel={periodLabel} baseDate={baseDate} onDateSelect={handleDateSelect}
+        searchQuery={searchQuery} onSearchChange={setSearchQuery} statusFilters={statusFilters}
+        onFilterToggle={toggleFilter} floorFilter={floorFilter} onFloorFilterChange={setFloorFilter} totalFloors={totalFloors} />
+      {roomRows.length === 0 ? (
+        <div className="text-center py-12 text-gray-400 text-sm border border-gray-200 rounded-xl bg-white">
+          {searchQuery || statusFilters.size > 0 ? 'No se encontraron habitaciones con los filtros actuales.' : 'No hay habitaciones registradas.'}
         </div>
-      )}
+      ) : <CalendarGrid days={days} roomRows={roomRows} onSelectRoom={onSelectRoom} />}
     </div>
   );
 }

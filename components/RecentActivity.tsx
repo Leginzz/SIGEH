@@ -6,12 +6,12 @@ interface RecentActivityProps {
   activities: ActivityItem[];
 }
 
-const typeConfig: Record<string, { bg: string; label: string }> = {
-  checkin: { bg: 'bg-green-100 text-green-700', label: 'Entrada' },
-  checkout: { bg: 'bg-red-100 text-red-700', label: 'Salida' },
-  income: { bg: 'bg-green-100 text-green-700', label: 'Ingreso' },
-  expense: { bg: 'bg-red-100 text-red-700', label: 'Gasto' },
-  report: { bg: 'bg-indigo-100 text-indigo-700', label: 'Corte' },
+const typeConfig: Record<string, { dot: string; label: string }> = {
+  checkin: { dot: 'bg-emerald-500', label: 'Entrada' },
+  checkout: { dot: 'bg-red-500', label: 'Salida' },
+  income: { dot: 'bg-emerald-500', label: 'Ingreso' },
+  expense: { dot: 'bg-red-500', label: 'Gasto' },
+  report: { dot: 'bg-indigo-500', label: 'Corte' },
 };
 
 const RecentActivity: React.FC<RecentActivityProps> = ({ activities }) => {
@@ -26,22 +26,20 @@ const RecentActivity: React.FC<RecentActivityProps> = ({ activities }) => {
   }
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       {activities.map((act, i) => {
-        const cfg = typeConfig[act.type] || { bg: 'bg-gray-100 text-gray-700', label: act.type };
+        const cfg = typeConfig[act.type] || { dot: 'bg-gray-400', label: act.type };
         return (
-          <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${cfg.bg}`}>
-              {cfg.label}
-            </span>
-            {act.room && <span className="text-sm font-bold text-gray-700 w-8">{act.room}</span>}
-            {!act.room && <span className="w-8" />}
-            <span className="flex-1 text-sm text-gray-600 truncate">
-              {act.guest && <span className="font-semibold text-gray-800">{act.guest}</span>}
+          <div key={i} className="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
+            <span className={`w-2 h-2 rounded-full shrink-0 ${cfg.dot}`} />
+            <span className="text-xs font-medium text-gray-500 w-14 shrink-0">{cfg.label}</span>
+            {act.room && <span className="text-sm font-semibold text-gray-700 w-10 shrink-0">{act.room}</span>}
+            <span className="flex-1 text-sm text-gray-600 truncate min-w-0">
+              {act.guest && <span className="font-medium text-gray-800">{act.guest}</span>}
               {act.guest && ' — '}
               {act.action}
             </span>
-            <span className="text-[11px] text-gray-400">{act.time}</span>
+            <span className="text-xs text-gray-400 shrink-0">{act.time}</span>
           </div>
         );
       })}
